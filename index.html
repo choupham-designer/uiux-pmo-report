@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Báo cáo tuần · UIUX PMO</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-page:    #EEEDE8;
+  --bg-surface: #FFFFFF;
+  --bg-subtle:  #EEEDE8;
+  --border:     rgba(0,0,0,0.08);
+  --border-md:  rgba(0,0,0,0.13);
+  --text-1:     #181815;
+  --text-2:     #62625D;
+  --text-3:     #9E9E98;
+  --radius:     12px;
+  --radius-sm:  8px;
+  --radius-xs:  6px;
+  --font:       'Plus Jakarta Sans', sans-serif;
+  --mono:       'JetBrains Mono', monospace;
+
+  /* Brand colors */
+  --primary:    #000000;
+  --primary-hover: #222222;
+  --accent:     oklch(64.6% 0.222 41.116);
+  --accent-bg:  oklch(96% 0.04 41.116);
+  --accent-bd:  oklch(82% 0.12 41.116);
+  --accent-tx:  oklch(38% 0.18 41.116);
+  /* Estimate Effort – Sky blue */
+  --s-est-bg:#E0F2FE; --s-est-bd:#7DD3FC; --s-est-tx:#075985; --s-est-bar:#0284C7;
+  /* UI Concept – Violet */
+  --s-con-bg:#EDE9FE; --s-con-bd:#C4B5FD; --s-con-tx:#5B21B6; --s-con-bar:#7C3AED;
+  /* UI Flow – Purple */
+  --s-flo-bg:#F5F3FF; --s-flo-bd:#DDD6FE; --s-flo-tx:#6D28D9; --s-flo-bar:#8B5CF6;
+  /* UI Packaging – Indigo */
+  --s-pkg-bg:#EEF2FF; --s-pkg-bd:#A5B4FC; --s-pkg-tx:#3730A3; --s-pkg-bar:#4F46E5;
+  /* Handoff – Blue */
+  --s-han-bg:#DBEAFE; --s-han-bd:#93C5FD; --s-han-tx:#1E3A8A; --s-han-bar:#2563EB;
+  /* Pending – Amber */
+  --s-pen-bg:#FEF3C7; --s-pen-bd:#FCD34D; --s-pen-tx:#92400E; --s-pen-bar:#D97706;
+  /* Completed – Green */
+  --s-don-bg:#DCFCE7; --s-don-bd:#86EFAC; --s-don-tx:#166534; --s-don-bar:#16A34A;
+  /* Update – Teal */
+  --s-upd-bg:#CCFBF1; --s-upd-bd:#5EEAD4; --s-upd-tx:#134E4A; --s-upd-bar:#0D9488;
+  /* Test GUI – Rose */
+  --s-tst-bg:#FFE4E6; --s-tst-bd:#FDA4AF; --s-tst-tx:#881337; --s-tst-bar:#E11D48;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--font);background:var(--bg-page);color:var(--text-1);min-height:100vh}
+
+/* ── Nav ── */
+.topnav{
+  background:var(--bg-surface);border-bottom:1px solid var(--border);
+  padding:0 2rem;display:flex;align-items:center;
+  justify-content:space-between;height:56px;
+  position:sticky;top:0;z-index:100;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{
+  width:30px;height:30px;border-radius:8px;
+  background:var(--primary);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:#fff;
+}
+.brand-name{font-size:13px;font-weight:700;color:var(--text-1)}
+.brand-sep{color:var(--border-md)}
+.brand-sub{font-size:12px;color:var(--text-2)}
+.nav-tabs{display:flex;gap:2px}
+.nav-tab{
+  padding:6px 18px;border-radius:var(--radius-xs);
+  font-size:13px;font-weight:500;cursor:pointer;
+  border:none;background:transparent;color:var(--text-2);
+  transition:all .15s;display:flex;align-items:center;gap:6px;font-family:var(--font);
+}
+.nav-tab:hover{background:var(--bg-subtle);color:var(--text-1)}
+.nav-tab.active{background:var(--bg-subtle);color:var(--text-1);font-weight:600}
+.tab-pip{width:6px;height:6px;border-radius:50%;background:var(--accent);display:none}
+.nav-tab.active .tab-pip{display:block}
+.nav-actions{display:flex;gap:8px;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--radius-xs);
+  font-size:12px;font-weight:600;cursor:pointer;
+  border:1px solid var(--border-md);background:var(--bg-surface);
+  color:var(--text-1);font-family:var(--font);transition:all .15s;
+}
+.btn:hover{background:var(--bg-subtle)}
+.btn-primary{background:var(--primary);color:#fff;border-color:transparent}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-primary:disabled{opacity:.55;cursor:not-allowed}
+.btn svg{width:13px;height:13px;flex-shrink:0}
+
+/* ── Panels ── */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ══ INPUT TAB — Sidebar layout ══ */
+.input-shell{
+  display:flex;
+  align-items:flex-start;
+  max-width:1100px;
+  margin:0 auto;
+  min-height:calc(100vh - 56px);
+}
+/* Left sidebar */
+.input-sidebar{
+  width:240px;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  background:var(--bg-surface);
+  border:1px solid var(--border);
+  border-radius:6px;
+  position:sticky;
+  top:calc(56px + 1.5rem);
+  max-height:calc(100vh - 56px - 3rem);
+  overflow:hidden;
+  margin:1.5rem 0 1.5rem 1.5rem;
+  align-self:flex-start;
+}
+.sidebar-meta{
+  padding:16px 14px 12px;
+  border-bottom:1px solid var(--border);
+  display:flex;flex-direction:column;gap:8px;
+}
+.sidebar-add-btn{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  width:100%;padding:8px 12px;
+  border-radius:var(--radius-xs);
+  border:1.5px dashed var(--border-md);background:transparent;
+  font-family:var(--font);font-size:12px;font-weight:600;
+  color:var(--text-2);cursor:pointer;transition:all .15s;
+}
+.sidebar-add-btn:hover{background:var(--accent-bg);color:var(--accent-tx);border-color:var(--accent-bd)}
+.sidebar-list{
+  flex:1;overflow-y:auto;padding:8px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.sidebar-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 10px;border-radius:var(--radius-xs);
+  cursor:pointer;transition:all .15s;
+  border:1px solid transparent;
+  min-height:44px;
+}
+.sidebar-item:hover{background:var(--accent-bg)}
+.sidebar-item.active{background:var(--accent-bg);border-color:var(--accent-bd)}
+.sidebar-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sidebar-item-body{flex:1;min-width:0}
+.sidebar-item-name{
+  font-size:12px;font-weight:600;color:var(--text-1);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  line-height:1.35;
+}
+.sidebar-item-name.empty{color:var(--text-3);font-weight:400;font-style:italic}
+.sidebar-item-meta{font-size:11px;color:var(--text-3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-item-del{
+  width:20px;height:20px;border:none;background:transparent;cursor:pointer;
+  color:var(--text-3);font-size:14px;border-radius:4px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:all .15s;
+}
+.sidebar-item:hover .sidebar-item-del{opacity:1}
+.sidebar-item-del:hover{background:#FEE2E2;color:#DC2626}
+.sidebar-empty-hint{
+  padding:2rem 1rem;text-align:center;font-size:12px;color:var(--text-3);line-height:1.6;
+}
+
+/* Right form pane */
+.input-pane{
+  flex:1;
+  padding:2rem;
+  display:flex;flex-direction:column;gap:0;
+  min-height:calc(100vh - 56px);
+}
+.pane-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100%;gap:12px;color:var(--text-3);font-size:13px;text-align:center;
+}
+.pane-empty svg{opacity:.3}
+
+/* Meta row (week / reporter / team) */
+.meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.5rem;padding-bottom:1.5rem;border-bottom:1px solid var(--border)}
+
+/* Form fields */
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;font-weight:600;color:var(--text-2);letter-spacing:0}
+.field input,.field textarea,.field select{
+  font-family:var(--font);font-size:13px;
+  padding:8px 11px;border-radius:var(--radius-xs);
+  border:1px solid var(--border-md);background:var(--bg-surface);
+  color:var(--text-1);outline:none;transition:border .15s;resize:vertical;
+}
+.field input:focus,.field textarea:focus,.field select:focus{
+  border-color:var(--accent);box-shadow:0 0 0 3px oklch(64.6% 0.222 41.116 / 0.15);
+}
+.field textarea{line-height:1.55}
+
+.form-section{display:flex;flex-direction:column;gap:12px}
+.form-card{
+  background:#ffffff;border-radius:var(--radius-sm);
+  border:1px solid var(--border);
+  padding:1rem 1.125rem;
+  display:flex;flex-direction:column;gap:12px;
+}
+.form-card-title{
+  font-size:14px;font-weight:700;color:#000000;
+  letter-spacing:0;
+}
+
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row.full{grid-template-columns:1fr}
+
+/* Phase pills */
+.phase-group{display:flex;gap:6px}
+.phase-btn{
+  flex:1;padding:7px 4px;border-radius:var(--radius-xs);
+  border:none;background:var(--bg-subtle);
+  font-family:var(--mono);font-size:12px;font-weight:400;color:#000000;
+  cursor:pointer;text-align:center;transition:all .15s;
+}
+.phase-btn:hover{background:var(--accent-bg);color:var(--accent-tx)}
+.phase-btn.active{background:var(--accent);color:#fff}
+
+/* Progress milestone buttons */
+.milestones{display:flex;gap:6px;align-items:center}
+.ms-btn{
+  flex:1;padding:8px 4px;border-radius:var(--radius-xs);
+  border:none;background:var(--bg-subtle);
+  font-family:var(--mono);font-size:12px;font-weight:400;color:#000000;
+  cursor:pointer;text-align:center;transition:all .15s;
+}
+.ms-btn:hover{background:var(--accent-bg);color:var(--accent-tx)}
+.ms-btn.active{background:var(--accent);color:#fff;font-weight:600}
+
+/* status select inline */
+.status-sel{
+  font-family:var(--font);font-size:13px;font-weight:500;
+  padding:8px 11px;border-radius:var(--radius-xs);border:1px solid var(--border-md);
+  outline:none;cursor:pointer;transition:all .15s;width:100%;
+  background:var(--bg-surface);color:var(--text-1);
+}
+
+/* Resource members */
+.resource-block{display:flex;flex-direction:column;gap:6px}
+.resource-block label{font-size:11px;font-weight:700;color:var(--text-2);letter-spacing:.06em;text-transform:uppercase}
+.member-list{display:flex;flex-direction:column;gap:5px}
+.member-row{display:flex;gap:6px;align-items:center}
+.member-name{
+  flex:1;font-family:var(--font);font-size:13px;padding:6px 10px;
+  border-radius:var(--radius-xs);border:1px solid var(--border-md);
+  background:var(--bg-surface);color:var(--text-1);outline:none;
+}
+.member-name:focus{border-color:var(--s-con-bar);box-shadow:0 0 0 2px rgba(124,58,237,.1)}
+.member-pct{
+  width:72px;font-family:var(--mono);font-size:13px;padding:6px 10px;
+  border-radius:var(--radius-xs);border:1px solid var(--border-md);
+  background:var(--bg-surface);color:var(--text-1);outline:none;text-align:right;
+}
+.member-pct:focus{border-color:var(--s-con-bar);box-shadow:0 0 0 2px rgba(124,58,237,.1)}
+.member-del{
+  width:24px;height:24px;border:none;background:transparent;cursor:pointer;
+  color:var(--text-3);font-size:15px;border-radius:4px;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.member-del:hover{background:#FEE2E2;color:#DC2626}
+.add-member-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  font-family:var(--font);font-size:12px;font-weight:500;color:var(--accent-tx);
+  background:var(--accent-bg);border:1px solid var(--accent-bd);border-radius:var(--radius-xs);
+  padding:5px 10px;cursor:pointer;transition:all .15s;align-self:flex-start;
+}
+.add-member-btn:hover{background:var(--accent-bd)}
+
+/* Resource member chips */
+.member-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.member-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:20px;
+  border:none;background:var(--bg-subtle);
+  font-family:var(--font);font-size:12px;font-weight:400;color:#000000;
+  cursor:pointer;transition:all .15s;
+}
+.member-chip:hover{background:var(--accent-bg);color:var(--accent-tx)}
+.member-chip.selected{background:var(--accent);color:#fff}
+.member-chip.selected .chip-role{color:rgba(255,255,255,.75)}
+.chip-role{font-size:11px;font-weight:400;color:var(--text-3)}
+.effort-list{display:flex;flex-direction:column;gap:6px;padding-top:4px}
+.effort-row{display:flex;align-items:center;gap:10px}
+.effort-name{font-size:12px;font-weight:600;color:var(--text-1);min-width:110px}
+.effort-input-wrap{display:flex;align-items:center;gap:4px}
+.effort-input-wrap input[type=number]{
+  width:64px;font-family:var(--mono);font-size:13px;text-align:right;
+  padding:5px 8px;border-radius:var(--radius-xs);
+  border:1px solid var(--border-md);background:var(--bg-surface);
+  color:var(--text-1);outline:none;
+}
+.effort-input-wrap input[type=number]:focus{border-color:var(--accent);box-shadow:0 0 0 2px oklch(64.6% 0.222 41.116 / 0.15)}
+.effort-unit{font-size:12px;font-weight:600;color:var(--text-2)}
+/* hide number spinners */
+.effort-input-wrap input[type=number]::-webkit-inner-spin-button,
+.effort-input-wrap input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none}
+.effort-input-wrap input[type=number]{-moz-appearance:textfield}
+
+.form-bottom-pad{height:2rem}
+
+/* ══ LOGIN SCREEN ══ */
+#login-screen{
+  position:fixed;inset:0;z-index:999;
+  background:var(--bg-page);
+  display:flex;align-items:center;justify-content:center;
+}
+.login-card{
+  background:#fff;border-radius:var(--radius);border:1px solid var(--border);
+  padding:2rem 2rem 1.75rem;width:360px;
+  display:flex;flex-direction:column;gap:1.25rem;
+}
+.login-brand{display:flex;align-items:center;gap:10px;margin-bottom:.25rem}
+.login-brand-mark{
+  width:32px;height:32px;border-radius:8px;background:var(--primary);
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;color:#fff;
+}
+.login-title{font-size:18px;font-weight:700;color:var(--text-1)}
+.login-sub{font-size:13px;color:var(--text-2);margin-top:2px}
+.login-members{display:flex;flex-wrap:wrap;gap:6px}
+.login-chip{
+  padding:6px 14px;border-radius:20px;border:none;
+  background:var(--bg-subtle);
+  font-family:var(--font);font-size:13px;font-weight:400;color:#000;
+  cursor:pointer;transition:all .15s;
+}
+.login-chip:hover{background:var(--accent-bg);color:var(--accent-tx)}
+.login-chip.active{background:var(--accent);color:#fff}
+.login-role{font-size:11px;color:var(--text-3);margin-left:2px}
+.login-chip.active .login-role{color:rgba(255,255,255,.7)}
+.login-btn{
+  background:var(--primary);color:#fff;border:none;border-radius:var(--radius-xs);
+  padding:10px;font-family:var(--font);font-size:13px;font-weight:600;
+  cursor:pointer;transition:opacity .15s;
+}
+.login-btn:disabled{opacity:.4;cursor:not-allowed}
+.login-btn:not(:disabled):hover{opacity:.85}
+.sync-bar{
+  position:fixed;bottom:1rem;right:1rem;z-index:200;
+  background:#000;color:#fff;font-size:12px;font-weight:500;
+  padding:7px 14px;border-radius:20px;
+  display:none;align-items:center;gap:7px;
+  font-family:var(--font);
+}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ══ REPORT TAB ══ */
+.report-wrap{max-width:800px;margin:0 auto;padding:2rem 1.5rem 5rem}
+#rpt-printable{
+  background:var(--bg-page);border:none;
+  border-radius:var(--radius);padding:2rem 2rem 1.5rem;
+}
+.rpt-header{
+  display:flex;justify-content:space-between;align-items:flex-start;
+  margin-bottom:1.75rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border);
+}
+.rpt-kicker{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:5px}
+.rpt-title{font-size:24px;font-weight:700;line-height:1.15}
+.rpt-sub{font-size:13px;color:var(--text-2);margin-top:4px}
+.rpt-right{text-align:right}
+.rpt-week{font-family:var(--mono);font-size:13px;font-weight:500}
+.rpt-by{font-size:12px;color:var(--text-2);margin-top:3px}
+.metrics{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin-bottom:1.5rem;
+}
+@media(max-width:640px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:360px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mc{background:#ffffff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px}
+.mc-lbl{font-size:11px;font-weight:700;color:var(--text-2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+.mc-val{font-size:28px;font-weight:700;line-height:1}
+.mc-sub{font-size:11px;color:var(--text-3);margin-top:5px}
+.sec-head{
+  font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--text-3);margin:1.25rem 0 10px;
+  display:flex;align-items:center;gap:8px;
+}
+.sec-head::after{content:'';flex:1;height:1px;background:var(--border)}
+.chart-block{background:#ffffff;border:1px solid var(--border);border-radius:var(--radius-sm);padding:1rem 1.25rem}
+.cbar-row{display:flex;align-items:center;gap:10px;padding:5px 0}
+.cbar-name{font-size:12px;color:var(--text-2);flex:0 0 38%;min-width:80px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cbar-track{flex:1;height:7px;background:rgba(0,0,0,.07);border-radius:4px;overflow:hidden}
+.cbar-fill{height:100%;border-radius:4px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.cbar-pct{font-family:var(--mono);font-size:11px;font-weight:500;min-width:34px;text-align:right}
+.chart-legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-2)}
+.leg-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:12px}
+.rpt-card{
+  background:#ffffff;border-radius:var(--radius-sm);padding:1rem;
+  display:flex;flex-direction:column;gap:9px;
+  border:1px solid var(--border);
+}
+.rpt-card.risky{border-color:rgba(220,38,38,.25)}
+.rpt-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.rpt-card-name{font-size:13px;font-weight:700;flex:1;line-height:1.35}
+.spill{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;letter-spacing:.02em}
+.pmini-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text-2);margin-bottom:4px}
+.pmini-track{height:4px;background:rgba(0,0,0,.08);border-radius:2px;overflow:hidden}
+.pmini-fill{height:100%;border-radius:2px}
+/* Milestone dots on card */
+.pmini-dots{display:flex;gap:3px;margin-top:5px}
+.ms-dot{width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,.1)}
+.ms-dot.hit{background:var(--dot-color,#7C3AED)}
+.cdiv{border:none;border-top:1px solid var(--border)}
+.crow{display:flex;gap:7px;align-items:flex-start}
+.crow-ic{font-size:12px;color:var(--text-3);flex-shrink:0;line-height:1.6}
+.crow-lbl{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
+.crow-txt{font-size:12px;color:var(--text-1);line-height:1.55;margin-top:1px}
+.risk-tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#FEE2E2;color:#991B1B;margin-top:4px}
+.note-box{
+  background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--radius-xs);
+  padding:8px 10px;font-size:12px;color:#92400E;line-height:1.55;
+}
+.note-box-lbl{font-size:10px;font-weight:700;color:#B45309;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.card-resource{margin-top:auto;padding-top:6px;border-top:1px solid var(--border)}
+/* Resource member pills in report */
+.member-pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.member-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;
+  background:var(--bg-surface);border:1px solid var(--border-md);color:var(--text-1);
+}
+.member-pill-pct{font-family:var(--mono);font-size:10px;color:var(--text-2)}
+.pend-list{display:flex;flex-direction:column;gap:8px}
+.pend-row{
+  display:flex;gap:14px;align-items:flex-start;
+  background:#ffffff;border-radius:var(--radius-sm);
+  padding:10px 14px;border-left:3px solid var(--s-pen-bar);
+}
+.done-row{
+  display:flex;gap:14px;align-items:flex-start;
+  background:#ffffff;border-radius:var(--radius-sm);
+  padding:10px 14px;border-left:3px solid var(--s-don-bar);
+}
+.pend-name{font-size:13px;font-weight:700;flex:0 0 auto;min-width:100px;max-width:180px}
+.pend-note{font-size:12px;color:var(--text-2);line-height:1.55}
+.rpt-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);
+  font-size:11px;color:var(--text-3);
+}
+.rpt-footer-r{font-family:var(--mono)}
+.empty-msg{text-align:center;padding:3rem 1rem;font-size:13px;color:var(--text-3)}
+
+/* ══ RESPONSIVE ══
+   Breakpoints:
+   ≤ 480px  — mobile portrait
+   481–640px — mobile landscape / small tablet
+   641–800px — tablet (max-width boundary)
+   ──────────────────────────────────────── */
+
+/* ── Nav — collapse on small ── */
+@media(max-width:600px){
+  .topnav{padding:0 1rem;gap:8px}
+  .brand-sep,.brand-sub{display:none}
+  .btn:not(.btn-primary){display:none}
+  .nav-tab{padding:6px 12px;font-size:12px}
+}
+
+/* ── Input tab — sidebar collapses on mobile ── */
+@media(max-width:640px){
+  .input-shell{flex-direction:column;height:auto;overflow:visible}
+  .input-sidebar{
+    width:100%;border-right:none;
+    border-bottom:1px solid var(--border);
+  }
+  .sidebar-list{
+    flex-direction:row;flex-wrap:nowrap;
+    overflow-x:auto;overflow-y:hidden;
+    padding:8px;gap:6px;
+  }
+  .sidebar-item{
+    flex-shrink:0;min-width:140px;max-width:180px;
+    padding:8px 10px;
+  }
+  .sidebar-item-del{opacity:1}
+  .input-pane{height:auto;min-height:60vh;padding:1.25rem}
+}
+@media(max-width:480px){
+  .form-row{grid-template-columns:1fr}
+  .phase-group{flex-wrap:wrap}
+  .phase-btn{flex:0 0 calc(33.33% - 5px)}
+}
+
+/* ── Report wrap ── */
+@media(max-width:600px){
+  .report-wrap{padding:1rem 1rem 4rem}
+  #rpt-printable{padding:1rem 1rem 1.25rem}
+}
+@media(min-width:601px) and (max-width:800px){
+  .report-wrap{padding:1.5rem 1.5rem 4rem}
+  #rpt-printable{padding:1.5rem 1.5rem 1.5rem}
+}
+
+/* ── Report header ── */
+@media(max-width:560px){
+  .rpt-header{flex-direction:column;gap:8px}
+  .rpt-right{text-align:left}
+  .rpt-title{font-size:20px}
+}
+
+/* ── Scorecards ── */
+@media(max-width:360px){
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .mc-val{font-size:20px}
+}
+
+/* ── Progress chart ── */
+@media(max-width:480px){
+  .cbar-name{flex-basis:30%;min-width:70px;font-size:11px}
+  .cbar-pct{font-size:10px;min-width:26px}
+  .chart-legend{gap:8px}
+  .leg-item{font-size:10px}
+}
+
+/* ── Project cards ── */
+@media(max-width:560px){
+  .proj-grid{grid-template-columns:1fr}
+}
+@media(min-width:561px) and (max-width:800px){
+  .proj-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:480px){
+  .rpt-card{padding:.875rem}
+  .rpt-card-name{font-size:12px}
+  .spill{font-size:9px;padding:2px 7px}
+  .crow-txt{font-size:11px}
+  .note-box{font-size:11px}
+}
+
+/* ── Pending & Completed rows ── */
+@media(max-width:480px){
+  .pend-row,.done-row{flex-direction:column;gap:5px}
+  .pend-name{max-width:100%}
+}
+
+/* ── Footer ── */
+@media(max-width:480px){
+  .rpt-footer{flex-direction:column;align-items:flex-start;gap:4px}
+}
+</style>
+</head>
+<body>
+
+<!-- Login screen -->
+<div id="login-screen">
+  <div class="login-card">
+    <div>
+      <div class="login-brand">
+        <div class="login-brand-mark">U</div>
+        <span style="font-size:13px;font-weight:700">UIUX PMO</span>
+      </div>
+      <div class="login-title">Chào mừng!</div>
+      <div class="login-sub">Chọn tên của bạn để bắt đầu</div>
+    </div>
+    <div class="login-members" id="login-members"></div>
+    <button class="login-btn" id="login-btn" disabled onclick="doLogin()">Vào báo cáo →</button>
+  </div>
+</div>
+
+<!-- Sync status bar -->
+<div class="sync-bar" id="sync-bar">
+  <span class="sync-dot"></span>
+  <span id="sync-label">Đang đồng bộ...</span>
+</div>
+
+<nav class="topnav" id="topnav">
+  <div class="brand">
+    <div class="brand-mark">U</div>
+    <span class="brand-name">UIUX PMO</span>
+    <span class="brand-sep">·</span>
+    <span class="brand-sub">Weekly Report</span>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="t-input" onclick="switchTab('input')">
+      <span class="tab-pip"></span>Nhập liệu
+    </button>
+    <button class="nav-tab" id="t-report" onclick="switchTab('report')">
+      <span class="tab-pip"></span>Báo cáo tổng quan
+    </button>
+  </div>
+  <div class="nav-actions">
+    <button class="btn" onclick="switchTab('report')">Xem báo cáo →</button>
+    <button class="btn btn-primary" id="exp-btn" onclick="doExport()">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M5 7l3 3 3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
+      Xuất PNG
+    </button>
+  </div>
+</nav>
+
+<!-- INPUT TAB -->
+<div class="tab-panel active" id="panel-input">
+<div class="input-shell">
+
+  <!-- Left sidebar -->
+  <aside class="input-sidebar">
+    <div class="sidebar-meta">
+      <div class="field"><label>Số tuần</label><input id="m-week" type="text" oninput="schedRender()"></div>
+      <input type="hidden" id="m-reporter" value="ChauPV">
+      <input type="hidden" id="m-team" value="UIUX PMO">
+      <button class="btn btn-primary" style="width:100%;justify-content:center;gap:7px" onclick="addProject()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>
+        Thêm dự án
+      </button>
+    </div>
+    <div class="sidebar-list" id="sidebar-list">
+      <div class="sidebar-empty-hint">Chưa có dự án.<br>Bấm "Thêm dự án" để bắt đầu.</div>
+    </div>
+  </aside>
+
+  <!-- Right form pane -->
+  <div class="input-pane" id="input-pane">
+    <div class="pane-empty" id="pane-empty">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="6" width="24" height="28" rx="3"/><path d="M14 14h12M14 20h12M14 26h8"/></svg>
+      <div>Chọn dự án từ danh sách bên trái<br>hoặc thêm dự án mới để bắt đầu</div>
+    </div>
+    <div id="pane-form" style="display:none"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- REPORT TAB -->
+<div class="tab-panel" id="panel-report">
+<div class="report-wrap">
+  <div id="rpt-printable">
+    <div class="empty-msg" id="rpt-empty">Chưa có dữ liệu. Nhập thông tin ở tab Nhập liệu.</div>
+    <div id="rpt-body" style="display:none"></div>
+  </div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script type="module">
+// ─── Firebase ─────────────────────────────────
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, onValue, set, remove, push, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAgStEM25z5guwlW5UOn0ZjazG__UwA7Fw",
+  authDomain: "uiux-pmo-report.firebaseapp.com",
+  databaseURL: "https://uiux-pmo-report-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "uiux-pmo-report",
+  storageBucket: "uiux-pmo-report.firebasestorage.app",
+  messagingSenderId: "435388881615",
+  appId: "1:435388881615:web:ea5dedc2af79600fe835ba"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db    = getDatabase(fbApp);
+
+// expose to global scope for non-module functions
+window._fbSet    = (path, val) => set(ref(db, path), val);
+window._fbRemove = (path)      => remove(ref(db, path));
+window._fbPush   = (path, val) => push(ref(db, path), val);
+window._fbListen = (path, cb)  => onValue(ref(db, path), snap => cb(snap.val()));
+window._fbTS     = serverTimestamp;
+// ─── constants ────────────────────────────────
+const MILESTONES = [0, 25, 50, 75, 100];
+const PHASES = [1,2,3,4,5];
+
+const STATUSES = [
+  { val:'estimate',  lbl:'Estimate Effort', bg:'var(--s-est-bg)', bd:'var(--s-est-bd)', tx:'var(--s-est-tx)', bar:'var(--s-est-bar)' },
+  { val:'concept',   lbl:'UI Concept',      bg:'var(--s-con-bg)', bd:'var(--s-con-bd)', tx:'var(--s-con-tx)', bar:'var(--s-con-bar)' },
+  { val:'flow',      lbl:'UI Flow',         bg:'var(--s-flo-bg)', bd:'var(--s-flo-bd)', tx:'var(--s-flo-tx)', bar:'var(--s-flo-bar)' },
+  { val:'packaging', lbl:'UI Packaging',    bg:'var(--s-pkg-bg)', bd:'var(--s-pkg-bd)', tx:'var(--s-pkg-tx)', bar:'var(--s-pkg-bar)' },
+  { val:'handoff',   lbl:'Handoff',         bg:'var(--s-han-bg)', bd:'var(--s-han-bd)', tx:'var(--s-han-tx)', bar:'var(--s-han-bar)' },
+  { val:'update',    lbl:'Update',          bg:'var(--s-upd-bg)', bd:'var(--s-upd-bd)', tx:'var(--s-upd-tx)', bar:'var(--s-upd-bar)' },
+  { val:'testgui',   lbl:'Test GUI',        bg:'var(--s-tst-bg)', bd:'var(--s-tst-bd)', tx:'var(--s-tst-tx)', bar:'var(--s-tst-bar)' },
+  { val:'pending',   lbl:'Pending',         bg:'var(--s-pen-bg)', bd:'var(--s-pen-bd)', tx:'var(--s-pen-tx)', bar:'var(--s-pen-bar)' },
+  { val:'completed', lbl:'Completed',       bg:'var(--s-don-bg)', bd:'var(--s-don-bd)', tx:'var(--s-don-tx)', bar:'var(--s-don-bar)' },
+  { val:'cancel',    lbl:'Cancel',          bg:'var(--s-can-bg)', bd:'var(--s-can-bd)', tx:'var(--s-can-tx)', bar:'var(--s-can-bar)' },
+];
+
+const SC  = v => STATUSES.find(s=>s.val===v) || STATUSES[0];
+const SL  = v => SC(v).lbl;
+const e   = s => (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const gv  = id => { const el=document.getElementById(id); return el?el.value:''; };
+
+// ─── state ────────────────────────────────────
+let projects = [];
+let _pid = 0, _rt = null;
+let selectedId = null;
+let currentUser = null;  // logged-in member name
+let _saveTimer = null;
+let _fbInitialized = false;
+
+// ─── login ────────────────────────────────────
+const ALL_MEMBERS = [
+  { name:'PhanVB',     role:'Manager'   },
+  { name:'HoangCD',   role:'UI Leader' },
+  { name:'DucNM135',  role:'Senior UX' },
+  { name:'AnhBTP7',   role:'UXW'       },
+  { name:'GiangNTT48',role:'Graphic'   },
+  { name:'ChauPV',    role:'Senior'    },
+  { name:'PhuongLT49',role:'Senior'    },
+  { name:'MinhLT33',  role:'Mid'       },
+  { name:'HuongDM6',  role:'Mid'       },
+  { name:'HuongPT53', role:'Junior'    },
+  { name:'HuongLT55', role:'Junior'    },
+  { name:'NgaLT27',   role:'Junior'    },
+];
+
+(function buildLoginUI() {
+  const wrap = document.getElementById('login-members');
+  const btn  = document.getElementById('login-btn');
+  let picked = null;
+  // restore from sessionStorage
+  const saved = sessionStorage.getItem('pmo_user');
+  if (saved) { currentUser = saved; hideLogin(); initFirebase(); return; }
+
+  wrap.innerHTML = ALL_MEMBERS.map(m =>
+    `<button class="login-chip" data-name="${m.name}" onclick="pickMember(this,'${m.name}')">
+      ${m.name}<span class="login-role">${m.role}</span>
+    </button>`
+  ).join('');
+
+  window.pickMember = (el, name) => {
+    wrap.querySelectorAll('.login-chip').forEach(c=>c.classList.remove('active'));
+    el.classList.add('active');
+    picked = name;
+    btn.disabled = false;
+  };
+  window.doLogin = () => {
+    if (!picked) return;
+    currentUser = picked;
+    sessionStorage.setItem('pmo_user', currentUser);
+    hideLogin();
+    initFirebase();
+  };
+})();
+
+function hideLogin() {
+  document.getElementById('login-screen').style.display = 'none';
+}
+
+// ─── Firebase init & sync ─────────────────────
+function initFirebase() {
+  if (_fbInitialized) return;
+  _fbInitialized = true;
+  const week = gv('m-week') || getISOWeek(new Date());
+  const weekKey = 'week_' + week;
+
+  showSync('Đang tải dữ liệu...');
+
+  // Listen realtime — merge remote into local
+  window._fbListen('reports/' + weekKey, (data) => {
+    if (data) {
+      // Convert Firebase object back to array
+      const remote = Object.entries(data).map(([fbKey, p]) => ({ ...p, fbKey }));
+      // Rebuild projects array from remote
+      projects = [];
+      _pid = 0;
+      remote.sort((a,b)=>(a._order||0)-(b._order||0)).forEach((p, i) => {
+        const id = ++_pid;
+        projects.push({ ...p, id });
+      });
+      selectedId = projects.length ? projects[0].id : null;
+      renderSidebar();
+      renderForm();
+      doRender();
+    }
+    hideSync();
+  });
+}
+
+function saveToFirebase() {
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => {
+    const week = gv('m-week') || getISOWeek(new Date());
+    const weekKey = 'week_' + week;
+    showSync('Đang lưu...');
+
+    // Save all projects as flat object keyed by fbKey or generate one
+    const data = {};
+    projects.forEach((p, i) => {
+      const key = p.fbKey || ('proj_' + p.id + '_' + Date.now());
+      p.fbKey = key;
+      data[key] = {
+        name:      p.name     || '',
+        status:    p.status   || 'concept',
+        phase:     p.phase    || '1',
+        pic:       p.pic      || '',
+        lastWeek:  p.lastWeek || '',
+        nextWeek:  p.nextWeek || '',
+        note:      p.note     || '',
+        progress:  p.progress || 0,
+        members:   p.members  || [],
+        updatedBy: currentUser || '',
+        updatedAt: Date.now(),
+        _order:    i,
+      };
+    });
+    window._fbSet('reports/' + weekKey, data)
+      .then(()  => { showSync('Đã lưu ✓', 1500); })
+      .catch(err => { showSync('Lỗi lưu: ' + err.message, 3000); });
+  }, 800);
+}
+
+function showSync(msg, hideAfter) {
+  const bar   = document.getElementById('sync-bar');
+  const label = document.getElementById('sync-label');
+  bar.style.display = 'flex';
+  label.textContent = msg;
+  if (hideAfter) setTimeout(hideSync, hideAfter);
+}
+function hideSync() {
+  document.getElementById('sync-bar').style.display = 'none';
+}
+
+// ─── tab ─────────────────────────────────────
+function switchTab(t) {
+  ['input','report'].forEach(k=>{
+    document.getElementById('t-'+k).classList.toggle('active',k===t);
+    document.getElementById('panel-'+k).classList.toggle('active',k===t);
+  });
+  if (t==='report') doRender();
+}
+
+// ─── team members list ────────────────────────
+const TEAM_MEMBERS = [
+  { name:'PhanVB',     role:'Manager'    },
+  { name:'HoangCD',   role:'UI Leader'  },
+  { name:'DucNM135',  role:'Senior UX'  },
+  { name:'AnhBTP7',   role:'UXW'        },
+  { name:'GiangNTT48',role:'Graphic'    },
+  { name:'ChauPV',    role:'Senior'     },
+  { name:'PhuongLT49',role:'Senior'     },
+  { name:'MinhLT33',  role:'Mid'        },
+  { name:'HuongDM6',  role:'Mid'        },
+  { name:'HuongPT53', role:'Junior'     },
+  { name:'HuongLT55', role:'Junior'     },
+  { name:'NgaLT27',   role:'Junior'     },
+];
+
+const PIC_LIST = [
+  { name:'HoangCD',   role:'UI Leader'  },
+  { name:'DucNM135',  role:'Senior UX'  },
+  { name:'GiangNTT48',role:'Graphic'    },
+  { name:'AnhBTP7',   role:'UXW'        },
+  { name:'ChauPV',    role:'Senior'     },
+  { name:'PhuongLT49',role:'Senior'     },
+];
+
+// ─── sync: read from DOM into project object ──
+// Only reads if the element actually exists in DOM (current form)
+function syncP(p) {
+  if (!p) return;
+  const get = id => { const el = document.getElementById(id); return el ? el.value : null; };
+  const name = get('pn-'+p.id); if (name !== null) p.name = name;
+  const st   = get('ps-'+p.id); if (st   !== null) p.status = st;
+  const ph   = get('pph-'+p.id);if (ph   !== null) p.phase = ph;
+  const lw   = get('pl-'+p.id); if (lw   !== null) p.lastWeek = lw;
+  const nw   = get('pnx-'+p.id);if (nw   !== null) p.nextWeek = nw;
+  const no   = get('pno-'+p.id);if (no   !== null) p.note = no;
+  const msBtn = document.querySelector(`.ms-btn.active[data-pid="${p.id}"]`);
+  if (msBtn) p.progress = parseInt(msBtn.dataset.val);
+  // pct values for selected members
+  document.querySelectorAll(`.member-pct[data-pid="${p.id}"]`).forEach(el => {
+    const m = p.members.find(x => x.name === el.dataset.member);
+    if (m) m.pct = el.value;
+  });
+}
+function syncSelected() { const p = projects.find(x => x.id === selectedId); if (p) syncP(p); }
+function syncAll() { projects.forEach(p => syncP(p)); }
+
+// ─── add / remove project ─────────────────────
+function addProject(preset) {
+  syncSelected();
+  const id = ++_pid;
+  const p  = { id, name:'', status:'concept', phase:'1', pic:'', lastWeek:'', nextWeek:'', note:'', progress:0, members:[], ...(preset||{}) };
+  projects.push(p);
+  selectedId = id;
+  renderSidebar();
+  renderForm();
+  schedRender();
+  saveToFirebase();
+}
+function removeProject(id) {
+  syncSelected();
+  projects = projects.filter(p => p.id !== id);
+  if (selectedId === id) selectedId = projects.length ? projects[projects.length-1].id : null;
+  renderSidebar();
+  renderForm();
+  schedRender();
+  saveToFirebase();
+}
+
+// ─── select project ───────────────────────────
+function selectProject(id) {
+  syncSelected();   // ← save before switching — THIS is the key fix
+  selectedId = id;
+  renderSidebar();
+  renderForm();
+}
+
+// ─── member toggle ────────────────────────────
+function toggleMember(pid, name) {
+  const p = projects.find(x => x.id === pid);
+  if (!p) return;
+  document.querySelectorAll(`.member-pct[data-pid="${pid}"]`).forEach(el => {
+    const m = p.members.find(x => x.name === el.dataset.member);
+    if (m) m.pct = el.value;
+  });
+  const idx = p.members.findIndex(m => m.name === name);
+  if (idx > -1) p.members.splice(idx, 1);
+  else p.members.push({ name, pct:'' });
+  refreshMemberArea(p);
+  schedRender();
+  saveToFirebase();
+}
+
+function refreshMemberArea(p) {
+  const area = document.getElementById('member-area-'+p.id);
+  if (!area) return;
+  area.innerHTML = buildMemberHTML(p);
+  bindMemberPctListeners(p);
+}
+
+function buildMemberHTML(p) {
+  const chips = TEAM_MEMBERS.map(tm => {
+    const sel = p.members.some(m => m.name === tm.name);
+    return `<button type="button" class="member-chip${sel?' selected':''}"
+      onclick="toggleMember(${p.id},'${tm.name}')">
+      ${e(tm.name)}${tm.role ? `<span class="chip-role">${e(tm.role)}</span>` : ''}
+    </button>`;
+  }).join('');
+
+  const effortRows = p.members.length ? `<div class="effort-list">${
+    p.members.map(m => `<div class="effort-row">
+      <span class="effort-name">${e(m.name)}</span>
+      <div class="effort-input-wrap">
+        <input type="number" min="0" max="100" class="member-pct"
+          data-pid="${p.id}" data-member="${e(m.name)}"
+          value="${e(m.pct)}" placeholder="0">
+        <span class="effort-unit">%</span>
+      </div>
+    </div>`).join('')
+  }</div>` : '<div style="font-size:12px;color:var(--text-3);padding-top:4px">Chọn thành viên bên trên để nhập effort.</div>';
+
+  return `<div class="member-chips">${chips}</div>${effortRows}`;
+}
+
+// ─── PIC single-select chip ───────────────────
+function setPIC(pid, name) {
+  const p = projects.find(x => x.id === pid);
+  if (!p) return;
+  p.pic = (p.pic === name) ? '' : name;
+  refreshPicArea(p);
+  updateSidebarItem(p);
+  schedRender();
+  saveToFirebase();
+}
+
+function refreshPicArea(p) {
+  const area = document.getElementById('pic-area-'+p.id);
+  if (!area) return;
+  area.innerHTML = buildPicHTML(p);
+}
+
+function buildPicHTML(p) {
+  return PIC_LIST.map(tm => {
+    const sel = p.pic === tm.name;
+    return `<button type="button" class="member-chip${sel?' selected':''}"
+      onclick="setPIC(${p.id},'${tm.name}')">
+      ${e(tm.name)}${tm.role ? `<span class="chip-role"> · ${e(tm.role)}</span>` : ''}
+    </button>`;
+  }).join('');
+}
+
+function bindMemberPctListeners(p) {
+  document.querySelectorAll(`.member-pct[data-pid="${p.id}"]`).forEach(el => {
+    const memberName = el.dataset.member;
+    el.addEventListener('input', () => {
+      const m = p.members.find(x => x.name === memberName);
+      if (m) { m.pct = el.value; schedRender(); saveToFirebase(); }
+    });
+  });
+}
+
+// ─── milestone ────────────────────────────────
+function setMilestone(pid, val) {
+  document.querySelectorAll(`.ms-btn[data-pid="${pid}"]`).forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.val) === val);
+  });
+  const p = projects.find(x => x.id === pid);
+  if (p) { p.progress = val; updateSidebarItem(p); schedRender(); saveToFirebase(); }
+}
+
+// ─── phase ────────────────────────────────────
+function setPhase(pid, val) {
+  document.querySelectorAll(`.phase-btn[data-pid="${pid}"]`).forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.val) === val);
+  });
+  const hidden = document.getElementById('pph-'+pid);
+  if (hidden) hidden.value = val;
+  const p = projects.find(x => x.id === pid);
+  if (p) { p.phase = String(val); updateSidebarItem(p); schedRender(); saveToFirebase(); }
+}
+
+// ─── sidebar ──────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('sidebar-list');
+  if (!projects.length) {
+    list.innerHTML = '<div class="sidebar-empty-hint">Chưa có dự án.<br>Bấm "Thêm dự án" để bắt đầu.</div>';
+    return;
+  }
+  list.innerHTML = projects.map(p => {
+    const c = SC(p.status);
+    return `<div class="sidebar-item${p.id===selectedId?' active':''}" onclick="selectProject(${p.id})" id="sbi-${p.id}">
+      <span class="sidebar-dot" style="background:${c.bar}"></span>
+      <div class="sidebar-item-body">
+        <div class="sidebar-item-name${p.name?'':' empty'}">${p.name ? e(p.name) : 'Chưa đặt tên'}</div>
+        <div class="sidebar-item-meta">${p.phase?`Phase ${p.phase} · `:''}${c.lbl}${p.pic?' · '+p.pic:''}</div>
+      </div>
+      <button class="sidebar-item-del" onclick="event.stopPropagation();removeProject(${p.id})">×</button>
+    </div>`;
+  }).join('');
+  const active = list.querySelector('.sidebar-item.active');
+  if (active) active.scrollIntoView({block:'nearest'});
+}
+
+function updateSidebarItem(p) {
+  const el = document.getElementById('sbi-'+p.id); if (!el) return;
+  const c = SC(p.status);
+  el.querySelector('.sidebar-dot').style.background = c.bar;
+  const n = el.querySelector('.sidebar-item-name');
+  n.textContent = p.name || 'Chưa đặt tên';
+  n.className = 'sidebar-item-name'+(p.name?'':' empty');
+  el.querySelector('.sidebar-item-meta').textContent = (p.phase?`Phase ${p.phase} · `:'')+c.lbl+(p.pic?' · '+p.pic:'');
+}
+
+// ─── form (right pane) ────────────────────────
+function renderForm() {
+  const emptyEl = document.getElementById('pane-empty');
+  const form    = document.getElementById('pane-form');
+  const p = projects.find(x => x.id === selectedId);
+  if (!p) { emptyEl.style.display=''; form.style.display='none'; return; }
+  emptyEl.style.display='none'; form.style.display='';
+
+  const msHTML = MILESTONES.map(v =>
+    `<button class="ms-btn${p.progress===v?' active':''}" data-pid="${p.id}" data-val="${v}" onclick="setMilestone(${p.id},${v})">${v}%</button>`
+  ).join('');
+
+  const phaseHTML = PHASES.map(v =>
+    `<button class="phase-btn${String(p.phase)===String(v)?' active':''}" data-pid="${p.id}" data-val="${v}" onclick="setPhase(${p.id},${v})">Phase ${v}</button>`
+  ).join('');
+
+  form.innerHTML = `
+<div class="form-section">
+  <div style="margin-bottom:4px">
+    <input id="pn-${p.id}" type="text" value="${e(p.name)}" placeholder="Tên dự án..."
+      style="font-size:18px;font-weight:700;border:none;border-bottom:2px solid var(--border-md);outline:none;background:transparent;color:var(--text-1);width:100%;font-family:var(--font);padding-bottom:6px">
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-title">Thông tin chung</div>
+    <div class="form-row">
+      <div class="field">
+        <label>Trạng thái</label>
+        <select class="status-sel" id="ps-${p.id}">
+          ${STATUSES.map(s=>`<option value="${s.val}"${p.status===s.val?' selected':''}>${s.lbl}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>PIC</label>
+      <div class="member-chips" id="pic-area-${p.id}" style="margin-bottom:0">${buildPicHTML(p)}</div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-title">Phase dự án</div>
+    <div class="phase-group">${phaseHTML}</div>
+    <input type="hidden" id="pph-${p.id}" value="${e(p.phase||'1')}">
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-title">Tiến độ</div>
+    <div class="milestones">${msHTML}</div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-title">Nội dung tuần</div>
+    <div class="form-row">
+      <div class="field">
+        <label>Tuần trước đã làm</label>
+        <textarea id="pl-${p.id}" rows="3" placeholder="Mô tả công việc tuần trước...">${e(p.lastWeek)}</textarea>
+      </div>
+      <div class="field">
+        <label>Kế hoạch tuần tới</label>
+        <textarea id="pnx-${p.id}" rows="3" placeholder="Dự kiến tuần sau...">${e(p.nextWeek)}</textarea>
+      </div>
+    </div>
+    <div class="field">
+      <label>Ghi chú / Risk / Issue</label>
+      <textarea id="pno-${p.id}" rows="2" placeholder="Ghi chú, risk, issue, chú ý...">${e(p.note)}</textarea>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-title">Nguồn lực</div>
+    <div id="member-area-${p.id}">${buildMemberHTML(p)}</div>
+  </div>
+</div>
+<div class="form-bottom-pad"></div>`;
+
+  // ── Attach event listeners (NO inline oninput) ──
+  const listen = (id, key) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.addEventListener('input', () => { p[key] = el.value; updateSidebarItem(p); schedRender(); saveToFirebase(); });
+  };
+  listen('pn-'+p.id,  'name');
+  listen('pl-'+p.id,  'lastWeek');
+  listen('pnx-'+p.id, 'nextWeek');
+  listen('pno-'+p.id, 'note');
+  const statusEl = document.getElementById('ps-'+p.id);
+  if (statusEl) statusEl.addEventListener('change', () => { p.status = statusEl.value; updateSidebarItem(p); schedRender(); saveToFirebase(); });
+  bindMemberPctListeners(p);
+}
+
+// stubs (no longer needed but kept for safety)
+function onFld() {} function onSt() {}
+
+// ─── render report ────────────────────────────
+function schedRender() { clearTimeout(_rt); _rt=setTimeout(doRender,120); }
+
+function doRender() {
+  // DO NOT call syncAll() here — project data is maintained live via event listeners
+  const week = gv('m-week')||'—';
+  const rep  = gv('m-reporter')||'—';
+  const team = gv('m-team')||'UIUX PMO';
+
+  const isPending   = p => p.status==='pending';
+  const isCompleted = p => p.status==='completed';
+  const isCancel    = p => p.status==='cancel';
+  const isActive    = p => ['estimate','concept','flow','packaging','handoff','update','testgui'].includes(p.status);
+
+  // groups
+  const activeProjs    = projects.filter(isActive);
+  const pendingProjs   = projects.filter(isPending);
+  const completedProjs = projects.filter(isCompleted);
+  const cancelProjs    = projects.filter(isCancel);
+  // "main" cards = everything except pending & completed (they get own sections)
+  const cardProjs = projects.filter(p => !isPending(p) && !isCompleted(p));
+
+  const total = projects.length;
+
+  const empty = document.getElementById('rpt-empty');
+  const body  = document.getElementById('rpt-body');
+  if (!total) { empty.style.display=''; body.style.display='none'; return; }
+  empty.style.display='none'; body.style.display='';
+
+  const now = new Date();
+  const ds  = now.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  // ── Fix 1: scorecards — count per status, only show >0 ──
+  // Group projects by status label, count each
+  const statusCounts = {};
+  projects.forEach(p => {
+    const lbl = SL(p.status);
+    statusCounts[lbl] = (statusCounts[lbl]||0) + 1;
+  });
+  // Always show "Tổng dự án" first
+  const scoreCardsHTML = [
+    `<div class="mc">
+      <div class="mc-lbl">Tổng dự án</div>
+      <div class="mc-val">${total}</div>
+      <div class="mc-sub">đang theo dõi</div>
+    </div>`
+  ].concat(
+    STATUSES
+      .filter(s => (statusCounts[s.lbl]||0) > 0)
+      .map(s => {
+        const cnt = statusCounts[s.lbl];
+        return `<div class="mc">
+          <div class="mc-lbl">${s.lbl}</div>
+          <div class="mc-val" style="color:${s.tx}">${cnt}</div>
+          <div class="mc-sub">dự án</div>
+        </div>`;
+      })
+  ).join('');
+
+  // ── Fix 2: chart — show actual progress for pending, sort high→low ──
+  const chartProjs = projects
+    .filter(p => !isCancel(p))
+    .slice()
+    .sort((a,b) => (b.progress||0) - (a.progress||0));
+
+  const chartRows = chartProjs.map(p=>{
+    const c   = SC(p.status);
+    const pct = Math.max(0, Math.min(100, p.progress||0));
+    const showNA = isPending(p) && pct === 0;
+    return `<div class="cbar-row">
+      <div class="cbar-name" title="${e(p.name)}">${e(p.name)||'<em style="color:var(--text-3)">Chưa đặt tên</em>'}</div>
+      <div class="cbar-track"><div class="cbar-fill" style="width:${pct}%;background:${c.bar}"></div></div>
+      <div class="cbar-pct"${showNA?' style="color:var(--text-3)"':''}>${showNA?'—':pct+'%'}</div>
+    </div>`;
+  }).join('');
+
+  // ── Helpers ──
+  const msDots = (p) => {
+    const c = SC(p.status);
+    return MILESTONES.map(v=>
+      `<span class="ms-dot${(p.progress||0)>=v?' hit':''}" style="${(p.progress||0)>=v?'--dot-color:'+c.bar:''}"></span>`
+    ).join('');
+  };
+
+  const memberPills = (p) => {
+    if (!p.members || !p.members.length) return '';
+    const pills = p.members.map(m =>
+      `<span class="member-pill">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5" cy="3.5" r="1.8"/><path d="M1.5 8.5c0-1.93 1.57-3.5 3.5-3.5s3.5 1.57 3.5 3.5"/></svg>
+        ${e(m.name)}${m.pct ? ' <span class="member-pill-pct">' + e(m.pct) + '%</span>' : ''}
+      </span>`
+    ).join('');
+    return `<div class="member-pills">${pills}</div>`;
+  };
+
+  // ── Fix 3: project cards — note as yellow box, resource at bottom ──
+  const cards = cardProjs.map(p=>{
+    const c   = SC(p.status);
+    const pct = Math.max(0, Math.min(100, p.progress||0));
+    const hasNote = p.note && p.note.trim();
+    const hasMembers = p.members && p.members.length > 0;
+    return `<div class="rpt-card${hasNote?' risky':''}">
+      <div class="rpt-card-top">
+        <div class="rpt-card-name">${e(p.name)||'<em style="color:var(--text-3);font-weight:400">Chưa đặt tên</em>'}</div>
+        <span class="spill" style="background:${c.bg};border:1px solid ${c.bd};color:${c.tx}">${SL(p.status)}</span>
+      </div>
+      ${p.pic ? `<div style="font-size:11px;color:var(--text-2);display:flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5" cy="3.5" r="1.8"/><path d="M1.5 8.5c0-1.93 1.57-3.5 3.5-3.5s3.5 1.57 3.5 3.5"/></svg><span style="font-weight:600">PIC:</span> ${e(p.pic)}</div>` : ''}
+      <div>
+        <div class="pmini-meta"><span>Tiến độ</span><span>${pct}%</span></div>
+        <div class="pmini-track"><div class="pmini-fill" style="width:${pct}%;background:${c.bar}"></div></div>
+        <div class="pmini-dots">${msDots(p)}</div>
+      </div>
+      <hr class="cdiv">
+      ${p.lastWeek?`<div class="crow"><span class="crow-ic">↩</span><div><div class="crow-lbl">Tuần trước</div><div class="crow-txt">${e(p.lastWeek)}</div></div></div>`:''}
+      ${p.nextWeek?`<div class="crow"><span class="crow-ic">📅</span><div><div class="crow-lbl">Kế hoạch tuần tới</div><div class="crow-txt">${e(p.nextWeek)}</div></div></div>`:''}
+      ${hasNote?`<div class="note-box"><div class="note-box-lbl">Ghi chú / Risk</div>${e(p.note)}</div>`:''}
+      ${hasMembers?`<div class="card-resource"><div class="crow-lbl" style="margin-bottom:5px">Nguồn lực</div>${memberPills(p)}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // ── Fix 5: pending rows ──
+  const pendRows = pendingProjs.map(p=>`
+    <div class="pend-row">
+      <div class="pend-name">${e(p.name)||'<em style="font-weight:400;color:var(--text-3)">Chưa đặt tên</em>'}</div>
+      <div class="pend-note">${e(p.note||p.lastWeek||'Không có cập nhật mới')}</div>
+    </div>`).join('');
+
+  // ── Fix 5: completed rows ──
+  const doneRows = completedProjs.map(p=>`
+    <div class="done-row">
+      <div class="pend-name">${e(p.name)||'<em style="font-weight:400;color:var(--text-3)">Chưa đặt tên</em>'}</div>
+      <div class="pend-note">${e(p.lastWeek||p.note||'Đã hoàn thành')}</div>
+    </div>`).join('');
+
+  // legend — only used statuses
+  const usedStatuses = [...new Set(projects.map(p=>p.status))];
+  const legendHTML = usedStatuses.map(v=>{
+    const c=SC(v);
+    return `<div class="leg-item"><span class="leg-dot" style="background:${c.bar}"></span>${c.lbl}</div>`;
+  }).join('');
+
+  body.innerHTML = `
+<div class="rpt-header">
+  <div>
+    <div class="rpt-kicker">FIS · ${e(team)}</div>
+    <div class="rpt-title">Báo cáo tiến độ dự án</div>
+    <div class="rpt-sub">Tổng hợp trạng thái & kế hoạch tuần tới</div>
+  </div>
+  <div class="rpt-right">
+    <div class="rpt-week">Tuần ${e(week)} · ${now.getFullYear()}</div>
+    <div class="rpt-by">Người lập: ${e(rep)}</div>
+    <div class="rpt-by" style="margin-top:2px">${ds}</div>
+  </div>
+</div>
+
+<div class="metrics">
+  ${scoreCardsHTML}
+</div>
+
+<div class="sec-head">Tiến độ theo dự án</div>
+<div class="chart-block">
+  ${chartRows||'<div class="empty-msg" style="padding:.75rem">Không có dữ liệu</div>'}
+  <div class="chart-legend">${legendHTML}</div>
+</div>
+
+${cardProjs.length?`<div class="sec-head">Chi tiết dự án</div><div class="proj-grid">${cards}</div>`:''}
+${pendingProjs.length?`<div class="sec-head">Pending / Chờ phản hồi</div><div class="pend-list">${pendRows}</div>`:''}
+${completedProjs.length?`<div class="sec-head">Completed / Hoàn thành</div><div class="pend-list">${doneRows}</div>`:''}
+
+<div class="rpt-footer">
+  <span>Báo cáo tuần ${e(week)} · FIS · ${e(team)}</span>
+  <span class="rpt-footer-r">Người lập: ${e(rep)}</span>
+</div>`;
+}
+
+// ─── export PNG ───────────────────────────────
+function doExport() {
+  syncAll();
+  if (!document.getElementById('panel-report').classList.contains('active')) {
+    switchTab('report'); setTimeout(_runExport, 350);
+  } else _runExport();
+}
+function _runExport() {
+  const btn = document.getElementById('exp-btn');
+  btn.disabled=true; btn.textContent='Đang xuất...';
+  document.getElementById('topnav').style.display='none';
+  html2canvas(document.getElementById('rpt-printable'),{
+    scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false
+  }).then(canvas=>{
+    const a=document.createElement('a');
+    a.download=`bao-cao-tuan-${gv('m-week')||'xx'}.png`;
+    a.href=canvas.toDataURL('image/png'); a.click();
+    document.getElementById('topnav').style.display='';
+    btn.disabled=false;
+    btn.innerHTML='<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M8 2v8M5 7l3 3 3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg> Xuất PNG';
+  }).catch(()=>{
+    document.getElementById('topnav').style.display='';
+    btn.disabled=false; btn.textContent='Xuất PNG';
+    alert('Lỗi xuất PNG. Vui lòng thử lại.');
+  });
+}
+
+// ─── auto week number ─────────────────────────
+function getISOWeek(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+}
+document.getElementById('m-week').value = getISOWeek(new Date());
+
+// hook week change to reload Firebase data
+document.getElementById('m-week').addEventListener('change', () => {
+  if (_fbInitialized) {
+    _fbInitialized = false;
+    projects = []; _pid = 0; selectedId = null;
+    renderSidebar(); renderForm();
+    initFirebase();
+  }
+});
+</script>
+</body>
+</html>
