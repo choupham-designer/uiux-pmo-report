@@ -543,6 +543,13 @@ function onWeekChange() {
 // ══════════════════════════════════════════════
 function weekKey() { return 'week_'+(gv('m-week')||getISOWeek(new Date())); }
 
+function normalizeMembers(members) {
+  if (!members) return [];
+  if (Array.isArray(members)) return members;
+  // Firebase converts arrays with holes to objects — convert back
+  return Object.values(members).filter(m => m && m.name);
+}
+
 function loadFromFirebase() {
   showSync('Đang tải...');
   const ref = db.ref('reports/'+weekKey());
@@ -551,7 +558,7 @@ function loadFromFirebase() {
     const data = snap.val();
     if (data && typeof data === 'object') {
       const remote = Object.entries(data)
-        .map(([k,v])=>({...v, fbKey:k}))
+        .map(([k,v])=>({...v, fbKey:k, members: normalizeMembers(v.members)}))
         .sort((a,b)=>(a._order||0)-(b._order||0));
       projects=[]; _pid=0;
       remote.forEach(p=>{ const id=++_pid; projects.push({...p,id}); });
