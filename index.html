@@ -242,7 +242,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
   <div class="shell">
     <aside class="sidebar">
       <div class="sb-meta">
-        <div class="fld"><label>Tuần</label><input id="m-week" type="text" oninput="onWeekChange()"></div>
+        <input type="hidden" id="m-week">
         <input type="hidden" id="m-reporter" value="ChauPV">
         <input type="hidden" id="m-team" value="UIUX PMO">
         <button class="btn btn-p" style="width:100%;justify-content:center;gap:7px" onclick="addProject()">
@@ -367,14 +367,21 @@ function getISOWeek(d){
   var y=new Date(Date.UTC(t.getUTCFullYear(),0,1));
   return Math.ceil((((t-y)/86400000)+1)/7);
 }
-function initWeek(){ document.getElementById('m-week').value=getISOWeek(new Date()); }
-function weekKey(){ return 'week_'+(gv('m-week')||getISOWeek(new Date())); }
-function onWeekChange(){
-  schedRender();
-  if(_fbRef){ _fbRef.off('value',onFbValue); _fbRef=null; }
-  _initialLoaded=false; projects=[]; _pid=0; selectedId=null;
-  renderSidebar(); renderForm(); loadFromFirebase();
+// Tính ngày đầu tuần (Thứ 2) và cuối tuần (Chủ nhật) theo ISO
+function getWeekRange(d){
+  var day=d.getDay();
+  var diffToMon=day===0?-6:1-day;
+  var mon=new Date(d); mon.setDate(d.getDate()+diffToMon);
+  var sun=new Date(mon); sun.setDate(mon.getDate()+6);
+  var fmt=function(dt){
+    return dt.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+  };
+  return {from:fmt(mon), to:fmt(sun)};
 }
+function initWeek(){
+  document.getElementById('m-week').value=getISOWeek(new Date());
+}
+function weekKey(){ return 'week_'+(gv('m-week')||getISOWeek(new Date())); }
 
 // ── FIREBASE ───────────────────────────────────
 function normM(m){
@@ -728,7 +735,9 @@ function renderForm(){
 function schedRender(){ clearTimeout(_rt); _rt=setTimeout(doRender,120); }
 
 function doRender(){
-  var week=gv('m-week')||'—';
+  var now=new Date();
+  var week=getISOWeek(now);
+  var wr=getWeekRange(now);
   var rep=gv('m-reporter')||'ChauPV';
   var team=gv('m-team')||'UIUX PMO';
   var pend=[],done=[],cards=[];
@@ -742,7 +751,6 @@ function doRender(){
   var body=document.getElementById('rpt-body');
   if(!total){emEl.style.display='';body.style.display='none';return;}
   emEl.style.display='none'; body.style.display='';
-  var now=new Date();
   var ds=now.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
 
   var counts={};
@@ -812,7 +820,7 @@ function doRender(){
   body.innerHTML=''
     +'<div class="rh">'
     +'<div><div class="rh-kick">FIS · '+esc(team)+'</div><div class="rh-title">Báo cáo tiến độ dự án</div><div class="rh-sub">Tổng hợp trạng thái & kế hoạch tuần tới</div></div>'
-    +'<div class="rh-r"><div class="rh-wk">Tuần '+esc(week)+' · '+now.getFullYear()+'</div><div class="rh-by">Người lập: '+esc(rep)+'</div><div class="rh-by" style="margin-top:2px">'+ds+'</div></div>'
+    +'<div class="rh-r"><div class="rh-wk">Tuần '+week+' · '+now.getFullYear()+'</div><div class="rh-by" style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:2px">'+wr.from+' – '+wr.to+'</div><div class="rh-by">Người lập: '+esc(rep)+'</div><div class="rh-by" style="margin-top:2px">'+ds+'</div></div>'
     +'</div>'
     +'<div class="metrics">'+scoreHTML+'</div>'
     +'<div class="sec-h">Tiến độ theo dự án</div>'
@@ -820,7 +828,7 @@ function doRender(){
     +(cards.length?'<div class="sec-h">Chi tiết dự án</div><div class="pgrid">'+cardsHTML+'</div>':'')
     +(pend.length?'<div class="sec-h">Pending / Chờ phản hồi</div><div class="pend-list">'+pendHTML+'</div>':'')
     +(done.length?'<div class="sec-h">Completed / Hoàn thành</div><div class="pend-list">'+doneHTML+'</div>':'')
-    +'<div class="rfoot"><span>Báo cáo tuần '+esc(week)+' · FIS · '+esc(team)+'</span><span class="rfoot-r">Người lập: '+esc(rep)+'</span></div>';
+    +'<div class="rfoot"><span>Báo cáo tuần '+week+' ('+wr.from+' – '+wr.to+') · FIS · '+esc(team)+'</span><span class="rfoot-r">Người lập: '+esc(rep)+'</span></div>';
 }
 
 // ── EXPORT ─────────────────────────────────────
@@ -836,7 +844,7 @@ function _runExport(){
   html2canvas(document.getElementById('rpt-print'),{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false})
   .then(function(canvas){
     var a=document.createElement('a');
-    a.download='bao-cao-tuan-'+(gv('m-week')||'xx')+'.png';
+    a.download='bao-cao-tuan-'+getISOWeek(new Date())+'.png';
     a.href=canvas.toDataURL('image/png'); a.click();
     document.getElementById('topnav').style.display='';
     btn.disabled=false;
