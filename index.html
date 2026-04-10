@@ -319,7 +319,7 @@ function gv(id){ var el=document.getElementById(id); return el?el.value:''; }
 // ── STATE ──────────────────────────────────────
 var projects=[], _pid=0, _rt=null, _saveTimer=null;
 var selectedId=null, currentUser=null;
-var _fbRef=null, _initialLoaded=false;
+var _fbRef=null, _isSaving=false;
 
 // ── LOGIN ──────────────────────────────────────
 function initLogin(){
@@ -357,6 +357,7 @@ function afterLogin(){
   switchTab('report');
   initWeek();
   loadFromFirebase();
+  startAutoSave(); // Bắt đầu auto-save mỗi 30 giây
 }
 function logoutUser(){ sessionStorage.removeItem('pmo_user'); location.reload(); }
 
@@ -405,59 +406,111 @@ function parseRemote(data){
 
 function loadFromFirebase(){
   showSync('Đang tải...');
-  if(_fbRef) _fbRef.off('value',onFbValue);
+  // Tắt listener cũ nếu có
+  if(_fbRef) { _fbRef.off('value',onFbValue); _fbRef=null; }
+  _isSaving=false;
   _fbRef=db.ref('reports/'+weekKey());
-  _initialLoaded=false;
   _fbRef.once('value').then(function(snap){
     var remote=parseRemote(snap.val());
     projects=[]; _pid=0;
     remote.forEach(function(p){ var id=++_pid; var np={}; Object.assign(np,p,{id:id}); projects.push(np); });
-    var found=false; for(var i=0;i<projects.length;i++){ if(projects[i].id===selectedId){found=true;break;} }
-    if(!found) selectedId=projects.length?projects[0].id:null;
+    if(projects.length){
+      // Giữ selectedId nếu vẫn còn tồn tại, không thì chọn project đầu tiên
+      var found=false;
+      for(var i=0;i<projects.length;i++){ if(projects[i].id===selectedId){found=true;break;} }
+      if(!found) selectedId=projects[0].id;
+    } else {
+      selectedId=null;
+    }
     renderSidebar(); renderForm(); doRender(); hideSync();
-    _initialLoaded=true;
+    // Bắt đầu lắng nghe realtime SAU KHI đã load xong
     _fbRef.on('value',onFbValue);
-  }).catch(function(err){ showSync('Lỗi: '+err.message,3000); });
+  }).catch(function(err){ showSync('Lỗi tải: '+err.message,4000); });
 }
 
+// BUG FIX: onFbValue không được xoá project của người đang nhập
+// Chỉ cập nhật các project KHÔNG phải đang được chọn
+// Và KHÔNG chạy nếu đang trong quá trình save
 function onFbValue(snap){
-  if(!_initialLoaded) return;
+  // Bỏ qua update từ Firebase khi đang lưu (tránh echo ghi đè)
+  if(_isSaving) return;
   var remote=parseRemote(snap.val());
+  if(!remote.length) return; // Không xoá data nếu remote trả về rỗng
+
+  // Cập nhật các project không đang được edit
+  var rmap={};
+  remote.forEach(function(rp){ rmap[rp.fbKey]=rp; });
+
+  // Thêm project mới từ remote (do người khác thêm)
   remote.forEach(function(rp){
-    var lp=null; for(var i=0;i<projects.length;i++){ if(projects[i].fbKey===rp.fbKey){lp=projects[i];break;} }
-    if(lp&&lp.id!==selectedId){ Object.assign(lp,rp,{id:lp.id}); }
-    else if(!lp){ var id=++_pid; var np={}; Object.assign(np,rp,{id:id}); projects.push(np); }
+    var found=false;
+    for(var i=0;i<projects.length;i++){
+      if(projects[i].fbKey===rp.fbKey){ found=true; break; }
+    }
+    if(!found){
+      var id=++_pid; var np={}; Object.assign(np,rp,{id:id}); projects.push(np);
+    }
   });
-  var rkeys={}; remote.forEach(function(p){rkeys[p.fbKey]=true;});
-  projects=projects.filter(function(p){return !p.fbKey||rkeys[p.fbKey]||p.id===selectedId;});
+
+  // Cập nhật các project KHÔNG đang được chọn (không ghi đè form đang nhập)
+  for(var i=0;i<projects.length;i++){
+    var lp=projects[i];
+    if(lp.fbKey && rmap[lp.fbKey] && lp.id!==selectedId){
+      var rp=rmap[lp.fbKey];
+      // Chỉ cập nhật nếu remote mới hơn
+      if((rp.updatedAt||0) > (lp.updatedAt||0)){
+        Object.assign(lp, rp, {id:lp.id});
+      }
+    }
+  }
+
+  // KHÔNG xoá project của selectedId dù remote không có
+  // Chỉ xoá project của người khác nếu bị xoá trên remote
+  projects=projects.filter(function(p){
+    if(!p.fbKey) return true; // project mới chưa có fbKey → giữ
+    if(p.id===selectedId) return true; // project đang chọn → luôn giữ
+    return !!rmap[p.fbKey]; // giữ nếu còn trên remote
+  });
+
   renderSidebar(); doRender();
 }
 
-// ── FIX: saveToFirebase dùng _fbRef hiện tại, không cần kiểm tra null ──
+// BUG FIX: saveToFirebase - dùng cờ _isSaving để tránh echo từ onFbValue
 function saveToFirebase(){
   clearTimeout(_saveTimer);
   _saveTimer=setTimeout(function(){
     if(!_fbRef){
-      // _fbRef chưa sẵn sàng, thử lại sau 500ms
-      setTimeout(saveToFirebase, 500);
+      setTimeout(saveToFirebase,500);
       return;
     }
-    var cur=null; for(var i=0;i<projects.length;i++){if(projects[i].id===selectedId){cur=projects[i];break;}}
+    // Sync data từ DOM vào object trước khi lưu
+    var cur=null;
+    for(var i=0;i<projects.length;i++){if(projects[i].id===selectedId){cur=projects[i];break;}}
     if(cur) syncP(cur);
+
     showSync('Đang lưu...');
+    _isSaving=true; // Đánh dấu đang save để onFbValue bỏ qua echo
+
     var data={};
     projects.forEach(function(p,i){
-      var key=p.fbKey||('p'+Date.now()+'_'+i); p.fbKey=key;
+      var key=p.fbKey||('p'+Date.now()+'_'+Math.random().toString(36).slice(2)); p.fbKey=key;
       data[key]={name:p.name||'',status:p.status||'concept',phase:p.phase||'1',
         pic:p.pic||'',lastWeek:p.lastWeek||'',nextWeek:p.nextWeek||'',
         note:p.note||'',progress:p.progress||0,members:p.members||[],
         updatedBy:currentUser||'',updatedAt:Date.now(),_order:i};
     });
-    _initialLoaded=false;
+
     _fbRef.set(data)
-      .then(function(){showSync('Đã lưu ✓',1500);setTimeout(function(){_initialLoaded=true;},300);})
-      .catch(function(err){showSync('Lỗi lưu: '+err.message,3000);_initialLoaded=true;});
-  },700);
+      .then(function(){
+        showSync('Đã lưu ✓',1500);
+        // Tắt cờ sau 1 giây để tránh bỏ qua update thật sự của người khác
+        setTimeout(function(){_isSaving=false;},1000);
+      })
+      .catch(function(err){
+        showSync('Lỗi lưu: '+err.message,4000);
+        _isSaving=false;
+      });
+  },800);
 }
 
 function showSync(msg,hide){
@@ -518,7 +571,13 @@ function removeProject(id){
   if(selectedId===id) selectedId=projects.length?projects[projects.length-1].id:null;
   renderSidebar(); renderForm(); schedRender(); saveToFirebase();
 }
-function selectProject(id){ syncSelected(); selectedId=id; renderSidebar(); renderForm(); }
+function selectProject(id){
+  // Sync và lưu project hiện tại trước khi chuyển sang project mới
+  syncSelected();
+  saveToFirebase();
+  selectedId=id;
+  renderSidebar(); renderForm();
+}
 
 // ── INTERACTIONS ───────────────────────────────
 function setMilestone(pid,val){
@@ -557,7 +616,8 @@ function toggleMember(pid,name){
 function submitProject(pid){
   var p=null; for(var i=0;i<projects.length;i++){if(projects[i].id===pid){p=projects[i];break;}}
   if(!p) return;
-  syncP(p);
+  // Sync tất cả project từ DOM trước khi lưu
+  projects.forEach(function(pr){ syncP(pr); });
   if(!_fbRef){ showSync('Chưa kết nối Firebase!',3000); return; }
   var hint=document.getElementById('shint-'+pid);
   var btn=document.querySelector('#pane-form .sub-btn');
@@ -570,17 +630,17 @@ function submitProject(pid){
       note:pr.note||'',progress:pr.progress||0,members:pr.members||[],
       updatedBy:currentUser||'',updatedAt:Date.now(),_order:i};
   });
-  _initialLoaded=false;
+  _isSaving=true;
   _fbRef.set(data)
     .then(function(){
       if(btn){btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M7 2l5 5-5 5"/></svg> Lưu dự án';}
       if(hint){hint.style.color='#16A34A';hint.textContent='✓ Đã lưu thành công';setTimeout(function(){if(hint)hint.textContent='';},3000);}
-      setTimeout(function(){_initialLoaded=true;},300);
+      setTimeout(function(){_isSaving=false;},1000);
     })
     .catch(function(err){
       if(btn) btn.disabled=false;
       if(hint){hint.style.color='#DC2626';hint.textContent='Lỗi: '+err.message;}
-      _initialLoaded=true;
+      _isSaving=false;
     });
 }
 
@@ -855,6 +915,40 @@ function _runExport(){
     alert('Lỗi xuất PNG.');
   });
 }
+
+// Auto-save mỗi 30 giây phòng trường hợp event không fire
+var _autoSaveInterval=null;
+function startAutoSave(){
+  if(_autoSaveInterval) clearInterval(_autoSaveInterval);
+  _autoSaveInterval=setInterval(function(){
+    if(_fbRef && projects.length){
+      syncSelected();
+      saveToFirebase();
+    }
+  },30000);
+}
+
+// Lưu khi đóng tab / reload
+window.addEventListener('beforeunload',function(){
+  if(_fbRef && projects.length){
+    syncSelected();
+    // Dùng sendBeacon hoặc sync XHR không khả thi với Firebase
+    // Nhưng saveToFirebase đã debounce 800ms → flush ngay
+    clearTimeout(_saveTimer);
+    var cur=null;
+    for(var i=0;i<projects.length;i++){if(projects[i].id===selectedId){cur=projects[i];break;}}
+    if(cur) syncP(cur);
+    var data={};
+    projects.forEach(function(p,i){
+      var key=p.fbKey||('p'+Date.now()+'_'+Math.random().toString(36).slice(2)); p.fbKey=key;
+      data[key]={name:p.name||'',status:p.status||'concept',phase:p.phase||'1',
+        pic:p.pic||'',lastWeek:p.lastWeek||'',nextWeek:p.nextWeek||'',
+        note:p.note||'',progress:p.progress||0,members:p.members||[],
+        updatedBy:currentUser||'',updatedAt:Date.now(),_order:i};
+    });
+    if(_fbRef) _fbRef.set(data);
+  }
+});
 
 document.addEventListener('DOMContentLoaded', initLogin);
 </script>
