@@ -276,18 +276,54 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 // ── CONSTANTS ──────────────────────────────────
 var MILESTONES = [0,25,50,75,100];
 var PHASES = [1,2,3,4,5];
-var STATUSES = [
-  {val:'estimate', lbl:'Estimate Effort',bg:'var(--s-est-bg)',bd:'var(--s-est-bd)',tx:'var(--s-est-tx)',bar:'var(--s-est-bar)'},
-  {val:'concept',  lbl:'UI Concept',     bg:'var(--s-con-bg)',bd:'var(--s-con-bd)',tx:'var(--s-con-tx)',bar:'var(--s-con-bar)'},
-  {val:'flow',     lbl:'UI Flow',        bg:'var(--s-flo-bg)',bd:'var(--s-flo-bd)',tx:'var(--s-flo-tx)',bar:'var(--s-flo-bar)'},
-  {val:'packaging',lbl:'UI Packaging',   bg:'var(--s-pkg-bg)',bd:'var(--s-pkg-bd)',tx:'var(--s-pkg-tx)',bar:'var(--s-pkg-bar)'},
-  {val:'handoff',  lbl:'Handoff',        bg:'var(--s-han-bg)',bd:'var(--s-han-bd)',tx:'var(--s-han-tx)',bar:'var(--s-han-bar)'},
-  {val:'update',   lbl:'Update',         bg:'var(--s-upd-bg)',bd:'var(--s-upd-bd)',tx:'var(--s-upd-tx)',bar:'var(--s-upd-bar)'},
-  {val:'testgui',  lbl:'Test GUI',       bg:'var(--s-tst-bg)',bd:'var(--s-tst-bd)',tx:'var(--s-tst-tx)',bar:'var(--s-tst-bar)'},
-  {val:'pending',  lbl:'Pending',        bg:'var(--s-pen-bg)',bd:'var(--s-pen-bd)',tx:'var(--s-pen-tx)',bar:'var(--s-pen-bar)'},
-  {val:'completed',lbl:'Completed',      bg:'var(--s-don-bg)',bd:'var(--s-don-bd)',tx:'var(--s-don-tx)',bar:'var(--s-don-bar)'},
-  {val:'cancel',   lbl:'Cancel',         bg:'var(--s-can-bg)',bd:'var(--s-can-bd)',tx:'var(--s-can-tx)',bar:'var(--s-can-bar)'}
+
+// Project Status (quản lý tình trạng dự án)
+var PROJECT_STATUSES = [
+  {val:'open',      lbl:'Open',        color:'#2563EB', bg:'#DBEAFE', tx:'#1E3A8A'},
+  {val:'inprogress',lbl:'In Progress', color:'#7C3AED', bg:'#EDE9FE', tx:'#5B21B6'},
+  {val:'pending',   lbl:'Pending',     color:'#D97706', bg:'#FEF3C7', tx:'#92400E'},
+  {val:'completed', lbl:'Completed',   color:'#16A34A', bg:'#DCFCE7', tx:'#166534'}
 ];
+
+// Design Process (giai đoạn thiết kế)
+var DESIGN_PROCESS = [
+  {val:'estimate',   lbl:'Estimate'},
+  {val:'research',   lbl:'Research'},
+  {val:'concept',    lbl:'UI Concept'},
+  {val:'designsys',  lbl:'Cấu hình Design System'},
+  {val:'commonui',   lbl:'Common UI'},
+  {val:'drawing',    lbl:'Vẽ UI'},
+  {val:'handoff',    lbl:'Handoff'},
+  {val:'packaging',  lbl:'UI Packing'},
+  {val:'testgui',    lbl:'Test GUI'},
+  {val:'updateui',   lbl:'Update UI'},
+  {val:'cr',         lbl:'Change Request'},
+  {val:'fixbug',     lbl:'Fix bug UI'}
+];
+
+// Loại dự án — có thể mở rộng thêm trong tương lai
+// Lưu trong Firebase tại path 'config/projectTypes' để admin thêm mới không cần sửa code
+var PROJECT_TYPES_DEFAULT = [
+  {val:'product',    lbl:'Sản phẩm nội bộ'},
+  {val:'outsource',  lbl:'Outsource / Khách hàng'},
+  {val:'platform',   lbl:'Platform / Hạ tầng'},
+  {val:'tool',       lbl:'Tool / Tiện ích'},
+  {val:'research',   lbl:'R&D / Nghiên cứu'}
+];
+var projectTypes = PROJECT_TYPES_DEFAULT.slice(); // sẽ được load/override từ Firebase
+
+// Backward compat helpers
+var STATUSES = PROJECT_STATUSES.map(function(s){
+  return {val:s.val,lbl:s.lbl,bg:s.bg,bd:s.bg,tx:s.tx,bar:s.color};
+});
+function SC(v){
+  for(var i=0;i<PROJECT_STATUSES.length;i++) if(PROJECT_STATUSES[i].val===v) return {bg:PROJECT_STATUSES[i].bg,bd:PROJECT_STATUSES[i].bg,tx:PROJECT_STATUSES[i].tx,bar:PROJECT_STATUSES[i].color,lbl:PROJECT_STATUSES[i].lbl};
+  return {bg:'#F3F4F6',bd:'#E5E7EB',tx:'#374151',bar:'#6B7280',lbl:v};
+}
+function SL(v){ return SC(v).lbl; }
+function getPS(v){ for(var i=0;i<PROJECT_STATUSES.length;i++) if(PROJECT_STATUSES[i].val===v) return PROJECT_STATUSES[i]; return PROJECT_STATUSES[0]; }
+function getDP(v){ for(var i=0;i<DESIGN_PROCESS.length;i++) if(DESIGN_PROCESS[i].val===v) return DESIGN_PROCESS[i]; return null; }
+function getPT(v){ for(var i=0;i<projectTypes.length;i++) if(projectTypes[i].val===v) return projectTypes[i]; return null; }
 var ALL_MEMBERS = [
   {name:'PhanVB',    role:'Manager'  },
   {name:'HoangCD',   role:'UI Leader'},
@@ -395,7 +431,13 @@ function parseRemote(data){
   var arr=[];
   Object.keys(data).forEach(function(k){
     var v=data[k];
-    arr.push({name:v.name||'',status:v.status||'concept',phase:v.phase||'1',
+    arr.push({name:v.name||'',
+      projectStatus: v.projectStatus||'open',
+      designProcess: v.designProcess||'',
+      projectType:   v.projectType||'',
+      // legacy: map old status field
+      status: v.projectStatus||v.status||'open',
+      phase:v.phase||'1',
       pic:v.pic||'',lastWeek:v.lastWeek||'',nextWeek:v.nextWeek||'',
       note:v.note||'',progress:v.progress||0,members:normM(v.members),
       updatedBy:v.updatedBy||'',updatedAt:v.updatedAt||0,_order:v._order||0,fbKey:k});
@@ -495,7 +537,12 @@ function saveToFirebase(){
     var data={};
     projects.forEach(function(p,i){
       var key=p.fbKey||('p'+Date.now()+'_'+Math.random().toString(36).slice(2)); p.fbKey=key;
-      data[key]={name:p.name||'',status:p.status||'concept',phase:p.phase||'1',
+      data[key]={name:p.name||'',
+        projectStatus:p.projectStatus||'open',
+        designProcess:p.designProcess||'',
+        projectType:p.projectType||'',
+        status:p.projectStatus||'open',
+        phase:p.phase||'1',
         pic:p.pic||'',lastWeek:p.lastWeek||'',nextWeek:p.nextWeek||'',
         note:p.note||'',progress:p.progress||0,members:p.members||[],
         updatedBy:currentUser||'',updatedAt:Date.now(),_order:i};
@@ -537,7 +584,9 @@ function syncP(p){
   if(!p) return;
   function gid(id){var el=document.getElementById(id);return el?el.value:null;}
   var n=gid('pn-'+p.id);   if(n!==null) p.name=n;
-  var s=gid('ps-'+p.id);   if(s!==null) p.status=s;
+  var ps=gid('pps-'+p.id); if(ps!==null){ p.projectStatus=ps; p.status=ps; }
+  var dp=gid('pdp-'+p.id); if(dp!==null) p.designProcess=dp;
+  var pt=gid('ppt-'+p.id); if(pt!==null) p.projectType=pt;
   var ph=gid('pph-'+p.id); if(ph!==null) p.phase=ph;
   var lw=gid('pl-'+p.id);  if(lw!==null) p.lastWeek=lw;
   var nw=gid('pnx-'+p.id); if(nw!==null) p.nextWeek=nw;
@@ -555,15 +604,15 @@ function syncSelected(){
 }
 
 // ── CRUD ───────────────────────────────────────
-// FIX: addProject giờ gọi saveToFirebase sau khi thêm
 function addProject(preset){
   syncSelected();
   var id=++_pid;
-  var p={id:id,name:'',status:'concept',phase:'1',pic:'',lastWeek:'',nextWeek:'',note:'',progress:0,members:[]};
+  var p={id:id,name:'',projectStatus:'open',designProcess:'',projectType:'',phase:'1',pic:'',lastWeek:'',nextWeek:'',note:'',progress:0,members:[]};
   if(preset) Object.assign(p,preset,{id:id});
+  p.status=p.projectStatus; // keep compat
   projects.push(p); selectedId=id;
   renderSidebar(); renderForm(); schedRender();
-  saveToFirebase(); // ← FIX: lưu ngay sau khi thêm dự án mới
+  saveToFirebase();
 }
 
 function removeProject(id){
@@ -624,7 +673,12 @@ function submitProject(pid){
   var data={};
   projects.forEach(function(pr,i){
     var key=pr.fbKey||('p'+Date.now()+'_'+i); pr.fbKey=key;
-    data[key]={name:pr.name||'',status:pr.status||'concept',phase:pr.phase||'1',
+    data[key]={name:pr.name||'',
+      projectStatus:pr.projectStatus||'open',
+      designProcess:pr.designProcess||'',
+      projectType:pr.projectType||'',
+      status:pr.projectStatus||'open',
+      phase:pr.phase||'1',
       pic:pr.pic||'',lastWeek:pr.lastWeek||'',nextWeek:pr.nextWeek||'',
       note:pr.note||'',progress:pr.progress||0,members:pr.members||[],
       updatedBy:currentUser||'',updatedAt:Date.now(),_order:i};
@@ -696,12 +750,15 @@ function renderSidebar(){
   if(!projects.length){list.innerHTML='<div class="sb-empty">Chưa có dự án.<br>Bấm "Thêm dự án" để bắt đầu.</div>';return;}
   var html='';
   for(var i=0;i<projects.length;i++){
-    var p=projects[i]; var c=SC(p.status);
+    var p=projects[i];
+    var ps=getPS(p.projectStatus||'open');
+    var dp=getDP(p.designProcess); var pt=getPT(p.projectType);
+    var meta=(pt?pt.lbl+' · ':'')+ps.lbl+(dp?' · '+dp.lbl:'')+(p.pic?' · '+p.pic:'');
     html+='<div class="sb-item'+(p.id===selectedId?' on':'')+'" onclick="selectProject('+p.id+')" id="sbi-'+p.id+'">'
-        +'<span class="sb-dot" style="background:'+c.bar+'"></span>'
+        +'<span class="sb-dot" style="background:'+ps.color+'"></span>'
         +'<div class="sb-body">'
         +'<div class="sb-nm'+(p.name?'':' empty')+'">'+(p.name?esc(p.name):'Chưa đặt tên')+'</div>'
-        +'<div class="sb-m2">'+(p.phase?'Phase '+p.phase+' · ':'')+c.lbl+(p.pic?' · '+p.pic:'')+'</div>'
+        +'<div class="sb-m2">'+meta+'</div>'
         +'</div>'
         +'<button class="sb-del" onclick="event.stopPropagation();removeProject('+p.id+')">×</button>'
         +'</div>';
@@ -711,12 +768,14 @@ function renderSidebar(){
 }
 function updateSbItem(p){
   var el=document.getElementById('sbi-'+p.id); if(!el) return;
-  var c=SC(p.status);
-  el.querySelector('.sb-dot').style.background=c.bar;
+  var ps=getPS(p.projectStatus||'open');
+  el.querySelector('.sb-dot').style.background=ps.color;
   var n=el.querySelector('.sb-nm');
   n.textContent=p.name||'Chưa đặt tên';
   n.className='sb-nm'+(p.name?'':' empty');
-  el.querySelector('.sb-m2').textContent=(p.phase?'Phase '+p.phase+' · ':'')+c.lbl+(p.pic?' · '+p.pic:'');
+  var dp=getDP(p.designProcess); var pt=getPT(p.projectType);
+  var meta=(pt?pt.lbl+' · ':'')+ps.lbl+(dp?' · '+dp.lbl:'')+(p.pic?' · '+p.pic:'');
+  el.querySelector('.sb-m2').textContent=meta;
 }
 
 // ── FORM ───────────────────────────────────────
@@ -736,11 +795,21 @@ function renderForm(){
     var pv=PHASES[j];
     phHTML+='<button class="pbtn'+(String(p.phase)===String(pv)?' on':'')+'" data-pid="'+p.id+'" data-val="'+pv+'" onclick="setPhase('+p.id+','+pv+')">Phase '+pv+'</button>';
   }
-  var statusOpts='';
-  for(var k=0;k<STATUSES.length;k++){
-    var s=STATUSES[k];
-    statusOpts+='<option value="'+s.val+'"'+(p.status===s.val?' selected':'')+'>'+s.lbl+'</option>';
-  }
+  // Build options
+  var psOpts='';
+  PROJECT_STATUSES.forEach(function(s){
+    psOpts+='<option value="'+s.val+'"'+(p.projectStatus===s.val?' selected':'')+'>'+s.lbl+'</option>';
+  });
+  var dpOpts='<option value="">-- Chọn giai đoạn --</option>';
+  DESIGN_PROCESS.forEach(function(d){
+    dpOpts+='<option value="'+d.val+'"'+(p.designProcess===d.val?' selected':'')+'>'+d.lbl+'</option>';
+  });
+  var ptOpts='<option value="">-- Chọn loại --</option>';
+  projectTypes.forEach(function(t){
+    ptOpts+='<option value="'+t.val+'"'+(p.projectType===t.val?' selected':'')+'>'+t.lbl+'</option>';
+  });
+  var statusOpts=psOpts; // kept for legacy compat
+
   form.innerHTML=''
     +'<div class="fsec">'
     +'<div style="margin-bottom:4px">'
@@ -748,9 +817,14 @@ function renderForm(){
     +' style="font-size:18px;font-weight:700;border:none;border-bottom:2px solid var(--bdrm);outline:none;background:transparent;color:var(--t1);width:100%;font-family:var(--font);padding-bottom:6px">'
     +'</div>'
     +'<div class="fcard"><div class="fcard-t">Thông tin chung</div>'
-    +'<div class="frow"><div class="fld"><label>Trạng thái</label>'
-    +'<select class="ssel" id="ps-'+p.id+'">'+statusOpts+'</select>'
-    +'</div></div>'
+    +'<div class="frow">'
+    +'<div class="fld"><label>Loại dự án</label>'
+    +'<select class="ssel" id="ppt-'+p.id+'">'+ptOpts+'</select></div>'
+    +'<div class="fld"><label>Project Status</label>'
+    +'<select class="ssel" id="pps-'+p.id+'">'+psOpts+'</select></div>'
+    +'</div>'
+    +'<div class="fld"><label>Design Process</label>'
+    +'<select class="ssel" id="pdp-'+p.id+'">'+dpOpts+'</select></div>'
     +'<div class="fld"><label>PIC</label>'
     +'<div class="chips" id="pic-area-'+p.id+'" style="margin-bottom:0">'+buildPicHTML(p)+'</div>'
     +'</div></div>'
@@ -785,8 +859,12 @@ function renderForm(){
   bind('pl-'+p.id,'lastWeek');
   bind('pnx-'+p.id,'nextWeek');
   bind('pno-'+p.id,'note');
-  var sel=document.getElementById('ps-'+p.id);
-  if(sel) sel.addEventListener('change',function(){p.status=sel.value;updateSbItem(p);schedRender();saveToFirebase();});
+  var selPS=document.getElementById('pps-'+p.id);
+  if(selPS) selPS.addEventListener('change',function(){p.projectStatus=selPS.value;p.status=selPS.value;updateSbItem(p);schedRender();saveToFirebase();});
+  var selDP=document.getElementById('pdp-'+p.id);
+  if(selDP) selDP.addEventListener('change',function(){p.designProcess=selDP.value;updateSbItem(p);schedRender();saveToFirebase();});
+  var selPT=document.getElementById('ppt-'+p.id);
+  if(selPT) selPT.addEventListener('change',function(){p.projectType=selPT.value;updateSbItem(p);schedRender();saveToFirebase();});
   bindPct(p);
 }
 
@@ -799,43 +877,62 @@ function doRender(){
   var wr=getWeekRange(now);
   var rep=gv('m-reporter')||'ChauPV';
   var team=gv('m-team')||'UIUX PMO';
-  var pend=[],done=[],cards=[];
-  projects.forEach(function(p){
-    if(p.status==='pending') pend.push(p);
-    else if(p.status==='completed') done.push(p);
-    else cards.push(p);
-  });
+
+  var pend=projects.filter(function(p){return p.projectStatus==='pending';});
+  var done=projects.filter(function(p){return p.projectStatus==='completed';});
+  var cards=projects.filter(function(p){return p.projectStatus!=='pending'&&p.projectStatus!=='completed';});
   var total=projects.length;
+
   var emEl=document.getElementById('rpt-empty');
   var body=document.getElementById('rpt-body');
   if(!total){emEl.style.display='';body.style.display='none';return;}
   emEl.style.display='none'; body.style.display='';
   var ds=now.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
 
-  var counts={};
-  projects.forEach(function(p){var l=SL(p.status);counts[l]=(counts[l]||0)+1;});
-  var scoreHTML='<div class="mc"><div class="mc-l">Tổng dự án</div><div class="mc-v">'+total+'</div><div class="mc-s">theo dõi</div></div>';
-  STATUSES.forEach(function(s){if((counts[s.lbl]||0)>0) scoreHTML+='<div class="mc"><div class="mc-l">'+s.lbl+'</div><div class="mc-v" style="color:'+s.tx+'">'+counts[s.lbl]+'</div><div class="mc-s">dự án</div></div>';});
+  // ── Scorecard: Tổng + theo loại dự án ──
+  var scoreHTML='<div class="mc"><div class="mc-l">Tổng dự án</div><div class="mc-v">'+total+'</div><div class="mc-s">đang theo dõi</div></div>';
+  var typeCounts={};
+  projects.forEach(function(p){ var k=p.projectType||'__none__'; typeCounts[k]=(typeCounts[k]||0)+1; });
+  projectTypes.forEach(function(t){
+    var cnt=typeCounts[t.val]||0;
+    if(cnt>0) scoreHTML+='<div class="mc"><div class="mc-l">'+t.lbl+'</div><div class="mc-v">'+cnt+'</div><div class="mc-s">dự án</div></div>';
+  });
+  if(typeCounts['__none__']){
+    scoreHTML+='<div class="mc"><div class="mc-l" style="color:var(--t3)">Chưa phân loại</div><div class="mc-v" style="color:var(--t3)">'+typeCounts['__none__']+'</div><div class="mc-s">dự án</div></div>';
+  }
 
-  var chartArr=projects.filter(function(p){return p.status!=='cancel';}).slice().sort(function(a,b){return (b.progress||0)-(a.progress||0);});
+  // ── Project Status pills ──
+  var psCountHTML='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem;">';
+  PROJECT_STATUSES.forEach(function(s){
+    var cnt=projects.filter(function(p){return (p.projectStatus||'open')===s.val;}).length;
+    if(cnt>0) psCountHTML+='<div style="display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;background:'+s.bg+';font-size:12px;font-weight:600;color:'+s.tx+'">'+s.lbl+' <span style="font-size:16px;font-weight:700;">'+cnt+'</span></div>';
+  });
+  psCountHTML+='</div>';
+
+  // ── Chart ──
+  var chartArr=projects.filter(function(p){return p.projectStatus!=='completed';})
+    .slice().sort(function(a,b){return (b.progress||0)-(a.progress||0);});
   var chartHTML='';
   chartArr.forEach(function(p){
-    var c=SC(p.status); var pct=Math.max(0,Math.min(100,p.progress||0));
-    var na=p.status==='pending'&&pct===0;
+    var ps=getPS(p.projectStatus||'open');
+    var pct=Math.max(0,Math.min(100,p.progress||0));
+    var na=p.projectStatus==='pending'&&pct===0;
     chartHTML+='<div class="cbar-row">'
       +'<div class="cbar-n" title="'+esc(p.name)+'">'+(p.name?esc(p.name):'<em>Chưa đặt tên</em>')+'</div>'
-      +'<div class="cbar-t"><div class="cbar-f" style="width:'+pct+'%;background:'+c.bar+'"></div></div>'
+      +'<div class="cbar-t"><div class="cbar-f" style="width:'+pct+'%;background:'+ps.color+'"></div></div>'
       +'<div class="cbar-p"'+(na?' style="color:var(--t3)"':'')+'>'+( na?'—':pct+'%')+'</div></div>';
   });
-  var usedSt=[]; projects.forEach(function(p){if(usedSt.indexOf(p.status)<0) usedSt.push(p.status);});
   var legHTML='';
-  usedSt.forEach(function(v){var c=SC(v);legHTML+='<div class="leg-i"><span class="leg-d" style="background:'+c.bar+'"></span>'+c.lbl+'</div>';});
+  PROJECT_STATUSES.forEach(function(s){
+    if(projects.some(function(p){return (p.projectStatus||'open')===s.val;}))
+      legHTML+='<div class="leg-i"><span class="leg-d" style="background:'+s.color+'"></span>'+s.lbl+'</div>';
+  });
 
   function buildDots(p){
-    var c=SC(p.status); var html='';
+    var ps=getPS(p.projectStatus||'open'); var html='';
     MILESTONES.forEach(function(v){
       var hit=(p.progress||0)>=v;
-      html+='<span class="msdot'+(hit?' hit':'')+'"'+(hit?' style="--dc:'+c.bar+'"':'')+' ></span>';
+      html+='<span class="msdot'+(hit?' hit':'')+'"'+(hit?' style="--dc:'+ps.color+'"':'')+' ></span>';
     });
     return html;
   }
@@ -850,44 +947,48 @@ function doRender(){
 
   var cardsHTML='';
   cards.forEach(function(p){
-    var c=SC(p.status); var pct=Math.max(0,Math.min(100,p.progress||0));
+    var ps=getPS(p.projectStatus||'open');
+    var dp=getDP(p.designProcess); var pt=getPT(p.projectType);
+    var pct=Math.max(0,Math.min(100,p.progress||0));
     var hasNote=p.note&&p.note.trim(); var hasMem=p.members&&p.members.length>0;
     cardsHTML+='<div class="rcard'+(hasNote?' risky':'')+'">'
       +'<div class="rcard-top">'
       +'<div class="rcard-nm">'+(p.name?esc(p.name):'<em style="color:var(--t3);font-weight:400">Chưa đặt tên</em>')+'</div>'
-      +'<span class="spill" style="background:'+c.bg+';border:1px solid '+c.bd+';color:'+c.tx+'">'+SL(p.status)+'</span>'
+      +'<span class="spill" style="background:'+ps.bg+';color:'+ps.tx+'">'+ps.lbl+'</span>'
       +'</div>'
-      +(p.pic?'<div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px">'
-        +'<svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5" cy="3.5" r="1.8"/><path d="M1.5 8.5c0-1.93 1.57-3.5 3.5-3.5s3.5 1.57 3.5 3.5"/></svg>'
-        +'<span style="font-weight:600">PIC:</span> '+esc(p.pic)+'</div>':'')
+      +'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:-2px;">'
+      +(pt?'<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--subtle);color:var(--t2)">'+esc(pt.lbl)+'</span>':'')
+      +(dp?'<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:#EDE9FE;color:#5B21B6">'+esc(dp.lbl)+'</span>':'')
+      +'</div>'
+      +(p.pic?'<div style="font-size:11px;color:var(--t2);display:flex;align-items:center;gap:4px"><svg width="11" height="11" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="5" cy="3.5" r="1.8"/><path d="M1.5 8.5c0-1.93 1.57-3.5 3.5-3.5s3.5 1.57 3.5 3.5"/></svg><span style="font-weight:600">PIC:</span> '+esc(p.pic)+'</div>':'')
       +'<div><div class="pm-m"><span>Tiến độ</span><span>'+pct+'%</span></div>'
-      +'<div class="pm-t"><div class="pm-f" style="width:'+pct+'%;background:'+c.bar+'"></div></div>'
+      +'<div class="pm-t"><div class="pm-f" style="width:'+pct+'%;background:'+ps.color+'"></div></div>'
       +'<div class="pm-dots">'+buildDots(p)+'</div></div>'
       +'<hr class="cdiv">'
-      +(p.lastWeek?'<div class="crow"><span class="crow-ic">↩</span><div><div class="crow-l">Tuần trước</div><div class="crow-tx">'+esc(p.lastWeek)+'</div></div></div>':'')
-      +(p.nextWeek?'<div class="crow"><span class="crow-ic">📅</span><div><div class="crow-l">Kế hoạch tuần tới</div><div class="crow-tx">'+esc(p.nextWeek)+'</div></div></div>':'')
-      +(hasNote?'<div class="nbox"><div class="nbox-l">Ghi chú / Risk</div>'+esc(p.note)+'</div>':'')
-      +(hasMem?'<div class="cres"><div class="crow-l" style="margin-bottom:5px">Nguồn lực</div>'+buildPills(p)+'</div>':'')
+      +(p.lastWeek?'<div class="crow"><span class="crow-ic">\u21A9</span><div><div class="crow-l">Tu\u1EA7n tr\u01B0\u1EDBc</div><div class="crow-tx">'+esc(p.lastWeek)+'</div></div></div>':'')
+      +(p.nextWeek?'<div class="crow"><span class="crow-ic">\uD83D\uDCC5</span><div><div class="crow-l">K\u1EBF ho\u1EA1ch tu\u1EA7n t\u1EDBi</div><div class="crow-tx">'+esc(p.nextWeek)+'</div></div></div>':'')
+      +(hasNote?'<div class="nbox"><div class="nbox-l">Ghi ch\u00FA / Risk</div>'+esc(p.note)+'</div>':'')
+      +(hasMem?'<div class="cres"><div class="crow-l" style="margin-bottom:5px">Ngu\u1ED3n l\u1EF1c</div>'+buildPills(p)+'</div>':'')
       +'</div>';
   });
 
   var pendHTML='';
-  pend.forEach(function(p){pendHTML+='<div class="pend-row"><div class="pend-nm">'+(p.name?esc(p.name):'Chưa đặt tên')+'</div><div class="pend-nt">'+esc(p.note||p.lastWeek||'Không có cập nhật mới')+'</div></div>';});
+  pend.forEach(function(p){pendHTML+='<div class="pend-row"><div class="pend-nm">'+(p.name?esc(p.name):'Ch\u01B0a \u0111\u1EB7t t\u00EAn')+'</div><div class="pend-nt">'+esc(p.note||p.lastWeek||'Kh\u00F4ng c\u00F3 c\u1EADp nh\u1EADt m\u1EDBi')+'</div></div>';});
   var doneHTML='';
-  done.forEach(function(p){doneHTML+='<div class="done-row"><div class="pend-nm">'+(p.name?esc(p.name):'Chưa đặt tên')+'</div><div class="pend-nt">'+esc(p.lastWeek||p.note||'Đã hoàn thành')+'</div></div>';});
+  done.forEach(function(p){doneHTML+='<div class="done-row"><div class="pend-nm">'+(p.name?esc(p.name):'Ch\u01B0a \u0111\u1EB7t t\u00EAn')+'</div><div class="pend-nt">'+esc(p.lastWeek||p.note||'\u0110\u00E3 ho\u00E0n th\u00E0nh')+'</div></div>';});
 
   body.innerHTML=''
-    +'<div class="rh">'
-    +'<div><div class="rh-kick">FIS · '+esc(team)+'</div><div class="rh-title">Báo cáo tiến độ dự án</div><div class="rh-sub">Tổng hợp trạng thái & kế hoạch tuần tới</div></div>'
-    +'<div class="rh-r"><div class="rh-wk">Tuần '+week+' · '+now.getFullYear()+'</div><div class="rh-by" style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:2px">'+wr.from+' – '+wr.to+'</div><div class="rh-by">Người lập: '+esc(rep)+'</div><div class="rh-by" style="margin-top:2px">'+ds+'</div></div>'
+    +'<div class="rh"><div><div class="rh-kick">FIS \u00B7 '+esc(team)+'</div><div class="rh-title">B\u00E1o c\u00E1o ti\u1EBFn \u0111\u1ED9 d\u1EF1 \u00E1n</div><div class="rh-sub">T\u1ED5ng h\u1EE3p tr\u1EA1ng th\u00E1i & k\u1EBF ho\u1EA1ch tu\u1EA7n t\u1EDBi</div></div>'
+    +'<div class="rh-r"><div class="rh-wk">Tu\u1EA7n '+week+' \u00B7 '+now.getFullYear()+'</div><div class="rh-by" style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:2px">'+wr.from+' \u2013 '+wr.to+'</div><div class="rh-by">Ng\u01B0\u1EDDi l\u1EADp: '+esc(rep)+'</div><div class="rh-by" style="margin-top:2px">'+ds+'</div></div>'
     +'</div>'
     +'<div class="metrics">'+scoreHTML+'</div>'
-    +'<div class="sec-h">Tiến độ theo dự án</div>'
-    +'<div class="cblock">'+(chartHTML||'<div class="empty-msg" style="padding:.75rem">Chưa có dữ liệu</div>')+'<div class="cleg">'+legHTML+'</div></div>'
-    +(cards.length?'<div class="sec-h">Chi tiết dự án</div><div class="pgrid">'+cardsHTML+'</div>':'')
-    +(pend.length?'<div class="sec-h">Pending / Chờ phản hồi</div><div class="pend-list">'+pendHTML+'</div>':'')
-    +(done.length?'<div class="sec-h">Completed / Hoàn thành</div><div class="pend-list">'+doneHTML+'</div>':'')
-    +'<div class="rfoot"><span>Báo cáo tuần '+week+' ('+wr.from+' – '+wr.to+') · FIS · '+esc(team)+'</span><span class="rfoot-r">Người lập: '+esc(rep)+'</span></div>';
+    +psCountHTML
+    +'<div class="sec-h">Ti\u1EBFn \u0111\u1ED9 theo d\u1EF1 \u00E1n</div>'
+    +'<div class="cblock">'+(chartHTML||'<div class="empty-msg" style="padding:.75rem">Ch\u01B0a c\u00F3 d\u1EF1 li\u1EC7u</div>')+'<div class="cleg">'+legHTML+'</div></div>'
+    +(cards.length?'<div class="sec-h">Chi ti\u1EBFt d\u1EF1 \u00E1n</div><div class="pgrid">'+cardsHTML+'</div>':'')
+    +(pend.length?'<div class="sec-h">Pending / Ch\u1EDD ph\u1EA3n h\u1ED3i</div><div class="pend-list">'+pendHTML+'</div>':'')
+    +(done.length?'<div class="sec-h">Completed / Ho\u00E0n th\u00E0nh</div><div class="pend-list">'+doneHTML+'</div>':'')
+    +'<div class="rfoot"><span>B\u00E1o c\u00E1o tu\u1EA7n '+week+' ('+wr.from+' \u2013 '+wr.to+') \u00B7 FIS \u00B7 '+esc(team)+'</span><span class="rfoot-r">Ng\u01B0\u1EDDi l\u1EADp: '+esc(rep)+'</span></div>';
 }
 
 // ── EXPORT ─────────────────────────────────────
@@ -941,7 +1042,12 @@ window.addEventListener('beforeunload',function(){
     var data={};
     projects.forEach(function(p,i){
       var key=p.fbKey||('p'+Date.now()+'_'+Math.random().toString(36).slice(2)); p.fbKey=key;
-      data[key]={name:p.name||'',status:p.status||'concept',phase:p.phase||'1',
+      data[key]={name:p.name||'',
+        projectStatus:p.projectStatus||'open',
+        designProcess:p.designProcess||'',
+        projectType:p.projectType||'',
+        status:p.projectStatus||'open',
+        phase:p.phase||'1',
         pic:p.pic||'',lastWeek:p.lastWeek||'',nextWeek:p.nextWeek||'',
         note:p.note||'',progress:p.progress||0,members:p.members||[],
         updatedBy:currentUser||'',updatedAt:Date.now(),_order:i};
