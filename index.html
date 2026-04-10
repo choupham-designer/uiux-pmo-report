@@ -406,10 +406,11 @@ function parseRemote(data){
 
 function loadFromFirebase(){
   showSync('Đang tải...');
-  // Tắt listener cũ nếu có
   if(_fbRef) { _fbRef.off('value',onFbValue); _fbRef=null; }
   _isSaving=false;
-  _fbRef=db.ref('reports/'+weekKey());
+  var wk=weekKey();
+  _loadedWeekKey=wk; // ghi nhớ weekKey đang load
+  _fbRef=db.ref('reports/'+wk);
   _fbRef.once('value').then(function(snap){
     var remote=parseRemote(snap.val());
     projects=[]; _pid=0;
@@ -572,9 +573,7 @@ function removeProject(id){
   renderSidebar(); renderForm(); schedRender(); saveToFirebase();
 }
 function selectProject(id){
-  // Sync và lưu project hiện tại trước khi chuyển sang project mới
-  syncSelected();
-  saveToFirebase();
+  syncSelected(); // chỉ sync DOM → object, KHÔNG save Firebase ở đây
   selectedId=id;
   renderSidebar(); renderForm();
 }
@@ -916,12 +915,14 @@ function _runExport(){
   });
 }
 
-// Auto-save mỗi 30 giây phòng trường hợp event không fire
+// Auto-save mỗi 30 giây - CHỈ khi có data thật
 var _autoSaveInterval=null;
+var _loadedWeekKey=''; // theo dõi weekKey đang được load
 function startAutoSave(){
   if(_autoSaveInterval) clearInterval(_autoSaveInterval);
   _autoSaveInterval=setInterval(function(){
-    if(_fbRef && projects.length){
+    // Chỉ auto-save nếu: có Firebase ref, có data, và weekKey khớp với data đang load
+    if(_fbRef && projects.length>0 && weekKey()===_loadedWeekKey){
       syncSelected();
       saveToFirebase();
     }
@@ -930,10 +931,9 @@ function startAutoSave(){
 
 // Lưu khi đóng tab / reload
 window.addEventListener('beforeunload',function(){
-  if(_fbRef && projects.length){
+  // Chỉ lưu nếu có data VÀ weekKey khớp với data đang load (tránh xóa data tuần cũ)
+  if(_fbRef && projects.length>0 && weekKey()===_loadedWeekKey){
     syncSelected();
-    // Dùng sendBeacon hoặc sync XHR không khả thi với Firebase
-    // Nhưng saveToFirebase đã debounce 800ms → flush ngay
     clearTimeout(_saveTimer);
     var cur=null;
     for(var i=0;i<projects.length;i++){if(projects[i].id===selectedId){cur=projects[i];break;}}
@@ -946,7 +946,7 @@ window.addEventListener('beforeunload',function(){
         note:p.note||'',progress:p.progress||0,members:p.members||[],
         updatedBy:currentUser||'',updatedAt:Date.now(),_order:i};
     });
-    if(_fbRef) _fbRef.set(data);
+    _fbRef.set(data);
   }
 });
 
