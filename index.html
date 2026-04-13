@@ -147,10 +147,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .mbtn.on{background:var(--acc);color:#fff;font-weight:600}
 .ssel{font-family:var(--font);font-size:13px;font-weight:500;padding:8px 11px;border-radius:var(--rxs);border:1px solid var(--bdrm);outline:none;cursor:pointer;width:100%;background:#fff;color:var(--t1)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;border:none;background:var(--subtle);font-family:var(--font);font-size:12px;font-weight:400;color:#000;cursor:pointer;transition:all .15s}
-.chip:hover{background:var(--accbg);color:var(--acctx)}
-.chip.on{background:var(--acc);color:#fff}
-.chip.on .crole{color:rgba(255,255,255,.75)}
+.chip{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:7px 12px;border-radius:10px;border:none;background:var(--subtle);font-family:var(--font);cursor:pointer;transition:all .15s;min-width:72px}
+.chip-nm{font-size:12px;font-weight:600;color:var(--t1);line-height:1.2}
+.chip-rl{font-size:10px;font-weight:400;color:var(--t3);line-height:1.2}
+.chip:hover{background:var(--accbg)}
+.chip:hover .chip-nm{color:var(--acctx)}
+.chip.on{background:var(--acc)}
+.chip.on .chip-nm{color:#fff}
+.chip.on .chip-rl{color:rgba(255,255,255,.7)}
 .crole{font-size:13px;color:var(--t3)}
 .effort-list{display:flex;flex-direction:column;gap:6px;padding-top:4px}
 .effort-row{display:flex;align-items:center;gap:10px}
@@ -162,6 +166,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .effort-u{font-size:12px;font-weight:600;color:var(--t2)}
 .sub-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:var(--rxs);border:none;background:var(--pri);color:#fff;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;margin-top:4px}
 .sub-btn:hover{opacity:.85}
+.bullet-hint{font-size:11px;color:var(--t3);margin-bottom:4px;font-style:italic}
 .sub-hint{font-size:12px;color:var(--t3);text-align:center;margin-top:6px;min-height:18px}
 .pad{height:2rem}
 .rwrap{max-width:800px;margin:0 auto;padding:2rem 1.5rem 5rem}
@@ -790,7 +795,9 @@ function buildPicHTML(p){
   for(var i=0;i<PIC_LIST.length;i++){
     var tm=PIC_LIST[i]; var sel=p.pic===tm.name;
     html+='<button type="button" class="chip'+(sel?' on':'')+'" onclick="setPIC('+p.id+',\''+tm.name+'\')">'
-        +esc(tm.name)+'<span class="crole"> · '+esc(tm.role)+'</span></button>';
+        +'<span class="chip-nm">'+esc(tm.name)+'</span>'
+        +'<span class="chip-rl">'+esc(tm.role)+'</span>'
+        +'</button>';
   }
   return html;
 }
@@ -800,7 +807,9 @@ function buildMemberHTML(p){
     var tm=ALL_MEMBERS[i];
     var sel=false; for(var j=0;j<p.members.length;j++){if(p.members[j].name===tm.name){sel=true;break;}}
     chips+='<button type="button" class="chip'+(sel?' on':'')+'" onclick="toggleMember('+p.id+',\''+tm.name+'\')">'
-          +esc(tm.name)+'<span class="crole"> · '+esc(tm.role)+'</span></button>';
+          +'<span class="chip-nm">'+esc(tm.name)+'</span>'
+          +'<span class="chip-rl">'+esc(tm.role)+'</span>'
+          +'</button>';
   }
   var effort='';
   if(p.members.length){
@@ -926,9 +935,11 @@ function renderForm(){
     +'<div class="fcard"><div class="fcard-t">Nội dung tuần</div>'
     +'<div class="frow">'
     +'<div class="fld"><label>Tuần trước đã làm</label>'
-    +'<textarea id="pl-'+p.id+'" rows="3" placeholder="Mô tả công việc tuần trước...">'+esc(p.lastWeek)+'</textarea></div>'
+    +'<div class="bullet-hint">Mỗi dòng = 1 bullet trong báo cáo</div>'
+    +'<textarea id="pl-'+p.id+'" rows="4" placeholder="- Hoàn thiện wireframe màn A&#10;- Review với stakeholder&#10;- Fix feedback vòng 2">'+esc(p.lastWeek)+'</textarea></div>'
     +'<div class="fld"><label>Kế hoạch tuần tới</label>'
-    +'<textarea id="pnx-'+p.id+'" rows="3" placeholder="Dự kiến tuần sau...">'+esc(p.nextWeek)+'</textarea></div>'
+    +'<div class="bullet-hint">Mỗi dòng = 1 bullet trong báo cáo</div>'
+    +'<textarea id="pnx-'+p.id+'" rows="4" placeholder="- Thiết kế màn B&#10;- Demo nội bộ&#10;- Chuẩn bị handoff">'+esc(p.nextWeek)+'</textarea></div>'
     +'</div>'
     +'<div class="fld"><label>Ghi chú / Risk / Issue</label>'
     +'<textarea id="pno-'+p.id+'" rows="2" placeholder="Ghi chú, risk, issue...">'+esc(p.note)+'</textarea></div>'
@@ -955,7 +966,25 @@ function renderForm(){
   bindPct(p);
 }
 
-// ── REPORT ─────────────────────────────────────
+// Chuyển text nhiều dòng → bullet list HTML cho báo cáo
+function toBullets(text){
+  if(!text||!text.trim()) return '';
+  var lines=text.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
+  if(!lines.length) return '';
+  if(lines.length===1){
+    // 1 dòng → hiện thẳng, không cần bullet
+    return '<span style="font-size:13px;color:var(--t2);line-height:1.5">'+esc(lines[0])+'</span>';
+  }
+  var html='<ul style="margin:0;padding-left:14px;font-size:13px;color:var(--t2);line-height:1.6;list-style:none">';
+  lines.forEach(function(l){
+    // Bỏ dấu "-" hoặc "•" đầu dòng nếu user đã gõ sẵn
+    var clean=l.replace(/^[-•·]\s*/,'');
+    html+='<li style="position:relative;padding-left:10px">'
+      +'<span style="position:absolute;left:0;color:var(--t3)">•</span>'
+      +esc(clean)+'</li>';
+  });
+  return html+'</ul>';
+}
 function schedRender(){ clearTimeout(_rt); _rt=setTimeout(doRender,120); }
 
 function doRender(){
@@ -1194,12 +1223,12 @@ function doRender(){
           html+='<div>'
             +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">'+iconCal('#94A3B8')
             +'<span style="font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em">Tuần trước</span></div>'
-            +(p.lastWeek?'<div style="font-size:13px;color:var(--t2);line-height:1.5">'+esc(p.lastWeek)+'</div>':'<div style="font-size:13px;color:var(--t3)">—</div>')
+            +(p.lastWeek?'<div>'+toBullets(p.lastWeek)+'</div>':'<div style="font-size:13px;color:var(--t3)">—</div>')
             +'</div>';
           html+='<div>'
             +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">'+iconCal('#2563EB')
             +'<span style="font-size:9px;font-weight:700;color:#2563EB;text-transform:uppercase;letter-spacing:.05em">Tuần tới</span></div>'
-            +(p.nextWeek?'<div style="font-size:13px;color:var(--t2);line-height:1.5">'+esc(p.nextWeek)+'</div>':'<div style="font-size:13px;color:var(--t3)">—</div>')
+            +(p.nextWeek?'<div>'+toBullets(p.nextWeek)+'</div>':'<div style="font-size:13px;color:var(--t3)">—</div>')
             +'</div>';
           html+='</div>';
         }
