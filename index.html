@@ -970,25 +970,91 @@ function doRender(){
   emEl.style.display='none'; body.style.display='';
   var ds=now.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
 
-  // ── Scorecard: Tổng + theo loại dự án ──
-  var scoreHTML='<div class="mc"><div class="mc-l">Tổng dự án</div><div class="mc-v">'+total+'</div><div class="mc-s">đang theo dõi</div></div>';
+  // ── Pie Charts: Theo loại dự án + theo Project Status ──
   var typeCounts={};
   projects.forEach(function(p){ var k=p.projectType||'__none__'; typeCounts[k]=(typeCounts[k]||0)+1; });
-  projectTypes.forEach(function(t){
-    var cnt=typeCounts[t.val]||0;
-    if(cnt>0) scoreHTML+='<div class="mc"><div class="mc-l">'+t.lbl+'</div><div class="mc-v">'+cnt+'</div><div class="mc-s">dự án</div></div>';
-  });
-  if(typeCounts['__none__']){
-    scoreHTML+='<div class="mc"><div class="mc-l" style="color:var(--t3)">Chưa phân loại</div><div class="mc-v" style="color:var(--t3)">'+typeCounts['__none__']+'</div><div class="mc-s">dự án</div></div>';
+
+  function buildPie(items, title, containerId){
+    // items = [{label, count, color}]
+    var tot = 0;
+    items.forEach(function(it){ tot += it.count; });
+    if(tot===0) return '';
+
+    var cx=80, cy=80, r=64, gap=2;
+    var slices=''; var startAngle=-Math.PI/2;
+
+    items.forEach(function(it){
+      if(it.count===0) return;
+      var angle = (it.count/tot)*Math.PI*2;
+      var endAngle = startAngle + angle - (gap*Math.PI/180);
+      var x1=cx+r*Math.cos(startAngle), y1=cy+r*Math.sin(startAngle);
+      var x2=cx+r*Math.cos(endAngle),   y2=cy+r*Math.sin(endAngle);
+      var large = angle > Math.PI ? 1 : 0;
+      var pct = Math.round(it.count/tot*100);
+      // inner label nếu đủ rộng
+      var midA = startAngle + (angle-(gap*Math.PI/180))/2;
+      var lx = cx+(r*0.62)*Math.cos(midA);
+      var ly = cy+(r*0.62)*Math.sin(midA);
+      slices += '<path d="M'+cx+','+cy+' L'+x1+','+y1+' A'+r+','+r+' 0 '+large+',1 '+x2+','+y2+' Z"'
+        +' fill="'+it.color+'" opacity="0.9">'
+        +'<title>'+it.label+': '+it.count+' ('+pct+'%)</title>'
+        +'</path>';
+      if(pct>=8){
+        slices += '<text x="'+lx+'" y="'+ly+'" text-anchor="middle" dominant-baseline="middle"'
+          +' font-size="10" font-weight="700" fill="#fff" pointer-events="none">'+pct+'%</text>';
+      }
+      startAngle += angle;
+    });
+
+    // legend
+    var legHTML='<div style="display:flex;flex-direction:column;gap:6px;justify-content:center;">';
+    items.forEach(function(it){
+      if(it.count===0) return;
+      var pct=Math.round(it.count/tot*100);
+      legHTML+='<div style="display:flex;align-items:center;gap:7px;">'
+        +'<span style="width:10px;height:10px;border-radius:3px;background:'+it.color+';flex-shrink:0"></span>'
+        +'<span style="font-size:11px;color:var(--t2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px">'+it.label+'</span>'
+        +'<span style="font-size:11px;font-weight:700;color:var(--t1);font-family:var(--mono)">'+it.count+'</span>'
+        +'<span style="font-size:10px;color:var(--t3);font-family:var(--mono);min-width:32px;text-align:right">'+pct+'%</span>'
+        +'</div>';
+    });
+    legHTML+='</div>';
+
+    return '<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);padding:14px 16px;">'
+      +'<div style="font-size:11px;font-weight:700;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:12px">'+title+'</div>'
+      +'<div style="display:flex;align-items:center;gap:16px;">'
+      +'<div style="position:relative;flex-shrink:0;">'
+      +'<svg width="160" height="160" viewBox="0 0 160 160">'+slices
+      +'<circle cx="80" cy="80" r="36" fill="#fff"/>'
+      +'<text x="80" y="76" text-anchor="middle" font-size="22" font-weight="700" fill="var(--t1)" font-family="var(--font)">'+tot+'</text>'
+      +'<text x="80" y="93" text-anchor="middle" font-size="10" fill="var(--t3)" font-family="var(--font)">dự án</text>'
+      +'</svg></div>'
+      +legHTML
+      +'</div></div>';
   }
 
-  // ── Project Status pills ──
-  var psCountHTML='<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:1.5rem;">';
+  // Pie 1 — Loại dự án
+  var PIE_COLORS_TYPE = ['#6366F1','#0EA5E9','#10B981','#F59E0B','#EF4444','#8B5CF6','#EC4899','#14B8A6'];
+  var typeItems=[];
+  projectTypes.forEach(function(t,i){
+    var cnt=typeCounts[t.val]||0;
+    typeItems.push({label:t.lbl, count:cnt, color:PIE_COLORS_TYPE[i%PIE_COLORS_TYPE.length]});
+  });
+  if(typeCounts['__none__']){
+    typeItems.push({label:'Chưa phân loại', count:typeCounts['__none__'], color:'#CBD5E1'});
+  }
+
+  // Pie 2 — Project Status
+  var statusItems=[];
   PROJECT_STATUSES.forEach(function(s){
     var cnt=projects.filter(function(p){return (p.projectStatus||'open')===s.val;}).length;
-    if(cnt>0) psCountHTML+='<div style="display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;background:'+s.bg+';font-size:12px;font-weight:600;color:'+s.tx+'">'+s.lbl+' <span style="font-size:16px;font-weight:700;">'+cnt+'</span></div>';
+    statusItems.push({label:s.lbl, count:cnt, color:s.color});
   });
-  psCountHTML+='</div>';
+
+  var pie1 = buildPie(typeItems, 'Theo loại dự án', 'pie-type');
+  var pie2 = buildPie(statusItems, 'Theo trạng thái', 'pie-status');
+  var pieHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:1.5rem;">'
+    +pie1+pie2+'</div>';
 
   // ── Chart ──
   var chartArr=projects.filter(function(p){
@@ -1071,13 +1137,12 @@ function doRender(){
   });
 
   body.innerHTML=''
-    +'<div class="rh"><div><div class="rh-kick">FIS \u00B7 '+esc(team)+'</div><div class="rh-title">B\u00E1o c\u00E1o ti\u1EBFn \u0111\u1ED9 d\u1EF1 \u00E1n</div><div class="rh-sub">T\u1ED5ng h\u1EE3p tr\u1EA1ng th\u00E1i & k\u1EBF ho\u1EA1ch tu\u1EA7n t\u1EDBi</div></div>'
-    +'<div class="rh-r"><div class="rh-wk">Tu\u1EA7n '+week+' \u00B7 '+now.getFullYear()+'</div><div class="rh-by" style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:2px">'+wr.from+' \u2013 '+wr.to+'</div><div class="rh-by">Ng\u01B0\u1EDDi l\u1EADp: '+esc(rep)+'</div><div class="rh-by" style="margin-top:2px">'+ds+'</div></div>'
+    +'<div class="rh"><div><div class="rh-kick">FIS · '+esc(team)+'</div><div class="rh-title">Báo cáo tiến độ dự án</div><div class="rh-sub">Tổng hợp trạng thái & kế hoạch tuần tới</div></div>'
+    +'<div class="rh-r"><div class="rh-wk">Tuần '+week+' · '+now.getFullYear()+'</div><div class="rh-by" style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:2px">'+wr.from+' – '+wr.to+'</div><div class="rh-by">Người lập: '+esc(rep)+'</div><div class="rh-by" style="margin-top:2px">'+ds+'</div></div>'
     +'</div>'
-    +'<div class="metrics">'+scoreHTML+'</div>'
-    +psCountHTML
-    +'<div class="sec-h">Ti\u1EBFn \u0111\u1ED9 theo d\u1EF1 \u00E1n</div>'
-    +'<div class="cblock">'+(chartHTML||'<div class="empty-msg" style="padding:.75rem">Ch\u01B0a c\u00F3 d\u1EF1 li\u1EC7u</div>')+'<div class="cleg">'+legHTML+'</div></div>'
+    +pieHTML
+    +'<div class="sec-h">Tiến độ theo dự án</div>'
+    +'<div class="cblock">'+(chartHTML||'<div class="empty-msg" style="padding:.75rem">Chưa có dữ liệu</div>')+'<div class="cleg">'+legHTML+'</div></div>'
     +(cards.length?'<div class="sec-h">Chi tiết dự án</div><div class="pgrid">'+cardsHTML+'</div>':'')
     +(pend.length?'<div class="sec-h">Pending / Chờ phản hồi</div><div class="pend-list">'+pendHTML+'</div>':'')
     +(done.length?'<div class="sec-h">Completed / Hoàn thành</div><div class="pend-list">'+doneHTML+'</div>':'')
