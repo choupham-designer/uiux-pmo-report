@@ -1021,40 +1021,34 @@ function doRender(){
     items.forEach(function(it){ tot+=it.count; });
     if(tot===0) return '';
 
-    // SVG dimensions
-    var cx=80, cy=80, r=60, strokeW=16, gap=6;
+    var cx=80, cy=80, r=58, strokeW=15;
     var circumference=2*Math.PI*r;
-    var totalAngle=360;
+    var gapDeg=4; // gap giữa các slice tính bằng độ
 
-    // Tính dasharray/dashoffset cho mỗi slice (stroke-dasharray technique)
-    // Mỗi slice là 1 circle với stroke-dasharray
     var slices='';
-    var currentAngle=-90; // bắt đầu từ top
+    var currentDeg=-90; // bắt đầu từ 12 giờ
 
     items.forEach(function(it){
       if(it.count===0) return;
       var pct=it.count/tot;
-      var sliceAngle=pct*360;
-      var gapAngle=gap/r*(180/Math.PI); // gap in degrees
-      var drawAngle=Math.max(0, sliceAngle-gapAngle);
-      var dashLen=(drawAngle/360)*circumference;
-      var dashOffset=circumference-(currentAngle+90)/360*circumference;
+      var sliceDeg=pct*360;
+      // Arc thực tế = sliceDeg - gap (trừ gap ở cuối)
+      var drawDeg=Math.max(0.5, sliceDeg-gapDeg);
+      var drawLen=(drawDeg/360)*circumference;
       var label=it.label+': '+it.count+' ('+Math.round(pct*100)+'%)';
 
-      // Rotate về đúng vị trí bắt đầu
-      var rotationDeg=currentAngle;
+      // Mỗi circle xoay về đúng góc bắt đầu, dasharray vẽ đúng arc
       slices+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'"'
         +' fill="none"'
         +' stroke="'+it.color+'"'
         +' stroke-width="'+strokeW+'"'
         +' stroke-linecap="round"'
-        +' stroke-dasharray="'+dashLen+' '+circumference+'"'
-        +' stroke-dashoffset="0"'
-        +' transform="rotate('+rotationDeg+' '+cx+' '+cy+')"'
-        +' opacity="1">'
+        +' stroke-dasharray="'+drawLen.toFixed(2)+' '+(circumference-drawLen).toFixed(2)+'"'
+        +' stroke-dashoffset="'+((circumference*0.25)).toFixed(2)+'"'
+        +' transform="rotate('+currentDeg.toFixed(2)+' '+cx+' '+cy+')">'
         +'<title>'+label+'</title>'
         +'</circle>';
-      currentAngle+=sliceAngle;
+      currentDeg+=sliceDeg;
     });
 
     // Legend
@@ -1070,22 +1064,16 @@ function doRender(){
         +'</div>';
     });
 
-    var svgSize=160;
     return '<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);padding:16px 18px;">'
       +'<div style="font-size:12px;font-weight:700;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">'+title+'</div>'
       +'<div style="display:flex;align-items:center;gap:20px;">'
-      // donut ring
-      +'<div style="flex-shrink:0;position:relative;">'
-      +'<svg width="'+svgSize+'" height="'+svgSize+'" viewBox="0 0 160 160">'
-      // Track ring (nền chấm mờ)
+      +'<div style="flex-shrink:0;">'
+      +'<svg width="160" height="160" viewBox="0 0 160 160">'
       +'<circle cx="80" cy="80" r="'+r+'" fill="none" stroke="#F1F5F9" stroke-width="'+strokeW+'"/>'
-      // Slices
       +slices
-      // Center text
       +'<text x="80" y="75" text-anchor="middle" font-size="26" font-weight="800" fill="#1E293B" font-family="inherit">'+tot+'</text>'
       +'<text x="80" y="93" text-anchor="middle" font-size="11" fill="#94A3B8" font-family="inherit" font-weight="500" letter-spacing="0.04em">DỰ ÁN</text>'
       +'</svg></div>'
-      // legend
       +'<div style="flex:1;min-width:0;">'+legRows+'</div>'
       +'</div></div>';
   }
@@ -1170,18 +1158,15 @@ function doRender(){
     var titleLabel = p.name
       ? esc(p.name)+(dp?' <span style="font-size:13px;font-weight:400;color:var(--t3)">('+esc(dp.lbl)+')</span>':'')
       : '<em style="color:var(--t3);font-weight:400">Chưa đặt tên</em>';
-    html+='<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">'
+    html+='<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">'
       +'<span style="font-size:14px;font-weight:700;flex:1;min-width:0;line-height:1.4">'+titleLabel+'</span>'
       +'<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+ps.bg+';color:'+ps.tx+';flex-shrink:0;white-space:nowrap;margin-top:1px">'+ps.lbl+'</span>'
       +'</div>';
 
-    // Dòng 2: Progress bar + % · PIC
-    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(hasNote||p.lastWeek||p.nextWeek?'12':'6')+'px;">'
-      +'<div style="width:100px;height:5px;background:rgba(0,0,0,.07);border-radius:3px;overflow:hidden;flex-shrink:0;">'
-      +'<div style="height:100%;width:'+pct+'%;background:'+ps.color+';border-radius:3px;"></div></div>'
-      +'<span style="font-size:13px;font-weight:700;color:var(--t2);font-family:var(--mono);flex-shrink:0;min-width:30px">'+pct+'%</span>'
-      +'<span style="font-size:13px;font-weight:600;color:var(--t3);flex:1;min-width:0;text-align:right">'+(p.pic?esc(p.pic):'')+'</span>'
-      +'</div>';
+    // Dòng 2: PIC (thay cho progress bar)
+    if(p.pic){
+      html+='<div style="font-size:12px;color:var(--t3);font-weight:600;margin-bottom:'+(hasNote||p.lastWeek||p.nextWeek?'10':'0')+'px;">'+esc(p.pic)+'</div>';
+    }
 
     // Dòng 3: Risk
     if(hasNote){
@@ -1291,6 +1276,31 @@ function doRender(){
 
   // Expose buildProjectList to window for segment click handler
   window._buildPList=buildProjectList;
+
+  // ── Progress ranking section ──
+  var progressArr=projects.filter(function(p){
+    var s=p.projectStatus||'open';
+    return s!=='closed'&&s!=='cancel';
+  }).slice().sort(function(a,b){return (b.progress||0)-(a.progress||0);});
+
+  var progressHTML='';
+  if(progressArr.length){
+    var maxPct=100;
+    progressHTML='<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);padding:14px 16px;">';
+    progressArr.forEach(function(p,i){
+      var ps=getPS(p.projectStatus||'open');
+      var pct=Math.max(0,Math.min(100,p.progress||0));
+      var isLast=i===progressArr.length-1;
+      progressHTML+='<div style="display:grid;grid-template-columns:1fr 120px 36px;align-items:center;gap:10px;padding:7px 0;'+(isLast?'':'border-bottom:1px solid var(--bdr);">')+'">'
+        +'<span style="font-size:13px;font-weight:600;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.name||'')+'">'+(p.name?esc(p.name):'Chưa đặt tên')+'</span>'
+        +'<div style="height:6px;background:rgba(0,0,0,.06);border-radius:4px;overflow:hidden;">'
+        +'<div style="height:100%;width:'+pct+'%;background:'+ps.color+';border-radius:4px;transition:width .4s"></div>'
+        +'</div>'
+        +'<span style="font-size:12px;font-weight:700;color:var(--t2);font-family:var(--mono);text-align:right">'+pct+'%</span>'
+        +'</div>';
+    });
+    progressHTML+='</div>';
+  }
 
   var detailHTML=segHTML;
 
@@ -1414,6 +1424,7 @@ function doRender(){
     +'</div>'
     +'</div>'
     +pieHTML
+    +(progressArr.length?'<div class="sec-h">Tiến độ dự án</div>'+progressHTML:'')
     +(projects.length?'<div class="sec-h">Chi tiết dự án</div>'+detailHTML:'')
     +resourceHTML
     +'<div class="rfoot"><span>Báo cáo tiến độ team UIUX · Tuần '+week+' ('+wr.from+' – '+wr.to+')</span><span class="rfoot-r">'+esc(rep)+' · '+ds+'</span></div>';
