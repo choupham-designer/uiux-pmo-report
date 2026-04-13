@@ -167,6 +167,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .sub-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:var(--rxs);border:none;background:var(--pri);color:#fff;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;margin-top:4px}
 .sub-btn:hover{opacity:.85}
 .bullet-hint{font-size:11px;color:var(--t3);margin-bottom:4px;font-style:italic}
+.seg-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--bdrm);background:#fff;font-family:var(--font);font-size:12px;font-weight:600;color:var(--t2);cursor:pointer;transition:all .15s}
+.seg-btn:hover{border-color:var(--t1);color:var(--t1)}
+.seg-on{background:#000!important;color:#fff!important;border-color:#000!important}
 .sub-hint{font-size:12px;color:var(--t3);text-align:center;margin-top:6px;min-height:18px}
 .pad{height:2rem}
 .rwrap{max-width:800px;margin:0 auto;padding:2rem 1.5rem 5rem}
@@ -1135,120 +1138,140 @@ function doRender(){
     return html+'</div>';
   }
 
-  // ── Grouped List: nhóm theo Loại dự án ──
-  function buildGroupedList(allProjects){
-    if(!allProjects.length) return '';
+  // ── Status sort order ──
+  var STATUS_ORDER = {inprogress:0, open:1, completed:2, pending:3, closed:4, cancel:5};
 
-    var groups={}, typeOrder=[];
-    allProjects.forEach(function(p){
-      var k=p.projectType||'__none__';
-      if(!groups[k]){ groups[k]=[]; typeOrder.push(k); }
-      groups[k].push(p);
-    });
-    typeOrder.sort(function(a,b){
-      var ia=99,ib=99;
-      projectTypes.forEach(function(t,i){ if(t.val===a) ia=i; if(t.val===b) ib=i; });
-      if(a==='__none__') ia=100; if(b==='__none__') ib=100;
-      return ia-ib;
-    });
+  // ── Build flat project list (sorted by status) ──
+  function buildProjectRow(p, isLast){
+    var ps=getPS(p.projectStatus||'open');
+    var dp=getDP(p.designProcess);
+    var pct=Math.max(0,Math.min(100,p.progress||0));
+    var hasNote=p.note&&p.note.trim();
+    var html='<div style="padding:14px 16px;border-bottom:1px solid '+(isLast?'transparent':'var(--bdr)')+';">';
 
-    var html='<div style="display:flex;flex-direction:column;gap:14px;">';
+    // Dòng 1: Title (Process) · [Status badge]
+    var titleLabel = p.name
+      ? esc(p.name)+(dp?' <span style="font-size:13px;font-weight:400;color:var(--t3)">('+esc(dp.lbl)+')</span>':'')
+      : '<em style="color:var(--t3);font-weight:400">Chưa đặt tên</em>';
+    html+='<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">'
+      +'<span style="font-size:14px;font-weight:700;flex:1;min-width:0;line-height:1.4">'+titleLabel+'</span>'
+      +'<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+ps.bg+';color:'+ps.tx+';flex-shrink:0;white-space:nowrap;margin-top:1px">'+ps.lbl+'</span>'
+      +'</div>';
 
-    typeOrder.forEach(function(typeVal){
-      var grpProjects=groups[typeVal];
-      var pt=getPT(typeVal);
-      var typeColor=TYPE_PALETTE[typeVal]||'#94A3B8';
-      var typeLabel=pt?pt.lbl:'Chưa phân loại';
+    // Dòng 2: Progress bar + % · PIC
+    html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(hasNote||p.lastWeek||p.nextWeek?'12':'6')+'px;">'
+      +'<div style="width:100px;height:5px;background:rgba(0,0,0,.07);border-radius:3px;overflow:hidden;flex-shrink:0;">'
+      +'<div style="height:100%;width:'+pct+'%;background:'+ps.color+';border-radius:3px;"></div></div>'
+      +'<span style="font-size:13px;font-weight:700;color:var(--t2);font-family:var(--mono);flex-shrink:0;min-width:30px">'+pct+'%</span>'
+      +'<span style="font-size:13px;font-weight:600;color:var(--t3);flex:1;min-width:0;text-align:right">'+(p.pic?esc(p.pic):'')+'</span>'
+      +'</div>';
 
-      html+='<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);overflow:hidden;">';
-
-      // Group header
-      html+='<div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--bdr);border-left:3px solid '+typeColor+';"> '
-        +'<span style="width:8px;height:8px;border-radius:2px;background:'+typeColor+'"></span>'
-        +'<span style="font-size:12px;font-weight:700;color:'+typeColor+';letter-spacing:.04em;text-transform:uppercase">'+esc(typeLabel)+'</span>'
-        +'<span style="font-size:13px;color:var(--t3);margin-left:auto">'+grpProjects.length+' dự án</span>'
+    // Dòng 3: Risk
+    if(hasNote){
+      html+='<div style="font-size:13px;display:flex;align-items:flex-start;gap:5px;margin-bottom:'+(p.lastWeek||p.nextWeek?'12':'0')+'px;">'
+        +'<span style="flex-shrink:0">💬</span>'
+        +'<span style="color:var(--t3);font-weight:600;flex-shrink:0">Risk:</span>'
+        +'<span style="font-size:13px;color:#92400E;background:#FFFBEB;padding:2px 8px;border-radius:4px;border:1px solid #FDE68A;line-height:1.6;flex:1">'+esc(p.note)+'</span>'
         +'</div>';
+    }
 
-      grpProjects.forEach(function(p,idx){
-        var ps=getPS(p.projectStatus||'open');
-        var dp=getDP(p.designProcess);
-        var pct=Math.max(0,Math.min(100,p.progress||0));
-        var hasNote=p.note&&p.note.trim();
-        var isLast=idx===grpProjects.length-1;
-
-        // Members list (tên thôi, không cần effort ở đây)
-        var memberNames='';
-        if(p.members&&p.members.length){
-          memberNames=p.members.map(function(m){return esc(m.name);}).join(' · ');
-        }
-
-        html+='<div style="padding:14px 16px;border-bottom:1px solid '+(isLast?'transparent':'var(--bdr)')+';">';
-
-        // ── Dòng 1: Title (Process)  ·  [Status badge]  ──
-        var titleLabel = p.name
-          ? esc(p.name)+(dp?' <span style="font-size:13px;font-weight:400;color:var(--t3)">('+esc(dp.lbl)+')</span>':'')
-          : '<em style="color:var(--t3);font-weight:400">Chưa đặt tên</em>';
-        html+='<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">'
-          +'<span style="font-size:14px;font-weight:700;flex:1;min-width:0;line-height:1.4">'+titleLabel+'</span>'
-          +'<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+ps.bg+';color:'+ps.tx+';flex-shrink:0;white-space:nowrap;margin-top:1px">'+ps.lbl+'</span>'
-          +'</div>';
-
-        // ── Dòng 2: [Progress bar  xx%]  ·  PIC ──
-        html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(hasNote||p.lastWeek||p.nextWeek?'12':'6')+'px;">'
-          +'<div style="width:100px;height:5px;background:rgba(0,0,0,.07);border-radius:3px;overflow:hidden;flex-shrink:0;">'
-          +'<div style="height:100%;width:'+pct+'%;background:'+ps.color+';border-radius:3px;"></div></div>'
-          +'<span style="font-size:13px;font-weight:700;color:var(--t2);font-family:var(--mono);flex-shrink:0;min-width:30px">'+pct+'%</span>'
-          +'<span style="font-size:13px;font-weight:600;color:var(--t3);flex:1;min-width:0;text-align:right">'+(p.pic?esc(p.pic):'')+'</span>'
-          +'</div>';
-
-        // ── Dòng 3: Risk (chỉ hiện khi có note) ──
-        if(hasNote){
-          html+='<div style="font-size:13px;display:flex;align-items:flex-start;gap:5px;margin-bottom:'+(p.lastWeek||p.nextWeek?'12':'0')+'px;">'
-            +'<span style="flex-shrink:0">💬</span>'
-            +'<span style="color:var(--t3);font-weight:600;flex-shrink:0">Risk:</span>'
-            +'<span style="font-size:13px;color:#92400E;background:#FFFBEB;padding:2px 8px;border-radius:4px;border:1px solid #FDE68A;line-height:1.6;flex:1">'+esc(p.note)+'</span>'
-            +'</div>';
-        }
-
-        // ── Divider + Tuần trước | Tuần tới ──
-        if(p.lastWeek||p.nextWeek){
-          var iconCal=function(color){
-            return '<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px">'
-              +'<rect x="1" y="3" width="14" height="12" rx="2"/>'
-              +'<path d="M1 7h14"/>'
-              +'<path d="M5 1v4M11 1v4"/>'
-              +'</svg>';
-          };
-          html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:12px;border-top:1px solid rgba(0,0,0,.07);">';
-          html+='<div>'
-            +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">'+iconCal('#94A3B8')
-            +'<span style="font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em">Tuần trước</span></div>'
-            +(p.lastWeek?'<div>'+toBullets(p.lastWeek)+'</div>':'<div style="font-size:13px;color:var(--t3)">—</div>')
-            +'</div>';
-          html+='<div>'
-            +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">'+iconCal('#2563EB')
-            +'<span style="font-size:9px;font-weight:700;color:#2563EB;text-transform:uppercase;letter-spacing:.05em">Tuần tới</span></div>'
-            +(p.nextWeek?'<div>'+toBullets(p.nextWeek)+'</div>':'<div style="font-size:13px;color:var(--t3)">—</div>')
-            +'</div>';
-          html+='</div>';
-        }
-
-        html+='</div>'; // end project row
-      });
-
-      html+='</div>'; // end group card
-    });
-
+    // Dòng 4: Tuần trước | Tuần tới
+    if(p.lastWeek||p.nextWeek){
+      var iconCal=function(color){
+        return '<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px">'
+          +'<rect x="1" y="3" width="14" height="12" rx="2"/>'
+          +'<path d="M1 7h14"/>'
+          +'<path d="M5 1v4M11 1v4"/>'
+          +'</svg>';
+      };
+      html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:12px;border-top:1px solid rgba(0,0,0,.07);">';
+      html+='<div>'
+        +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">'+iconCal('#94A3B8')
+        +'<span style="font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em">Tuần trước</span></div>'
+        +(p.lastWeek?'<div>'+toBullets(p.lastWeek)+'</div>':'<div style="font-size:13px;color:var(--t3)">—</div>')
+        +'</div>';
+      html+='<div>'
+        +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">'+iconCal('#2563EB')
+        +'<span style="font-size:9px;font-weight:700;color:#2563EB;text-transform:uppercase;letter-spacing:.05em">Tuần tới</span></div>'
+        +(p.nextWeek?'<div>'+toBullets(p.nextWeek)+'</div>':'<div style="font-size:13px;color:var(--t3)">—</div>')
+        +'</div>';
+      html+='</div>';
+    }
     html+='</div>';
     return html;
   }
 
-  // Tất cả projects trừ closed/cancel gộp vào grouped list
-  var allActive=projects.filter(function(p){
-    var s=p.projectStatus||'open';
-    return s!=='closed'&&s!=='cancel';
+  function sortByStatus(arr){
+    return arr.slice().sort(function(a,b){
+      var oa=STATUS_ORDER[a.projectStatus||'open']||99;
+      var ob=STATUS_ORDER[b.projectStatus||'open']||99;
+      return oa-ob;
+    });
+  }
+
+  function buildProjectList(filterType){
+    // filterType: null = tất cả, string = lọc theo projectType
+    var filtered=projects.filter(function(p){
+      if(filterType && filterType!=='__all__') return (p.projectType||'__none__')===filterType;
+      return true;
+    });
+    filtered=sortByStatus(filtered);
+    if(!filtered.length) return '<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">Không có dự án</div>';
+    var html='';
+    filtered.forEach(function(p,i){
+      html+=buildProjectRow(p, i===filtered.length-1);
+    });
+    return '<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);overflow:hidden;">'+html+'</div>';
+  }
+
+  // ── Segment tabs + counts ──
+  // Tất cả types có ít nhất 1 dự án
+  var typesWithProjects=[{val:'__all__', lbl:'Tất cả'}];
+  projectTypes.forEach(function(t){
+    if(projects.some(function(p){return (p.projectType||'__none__')===t.val;})){
+      typesWithProjects.push(t);
+    }
   });
-  var groupedListHTML=buildGroupedList(allActive);
+  if(projects.some(function(p){return !p.projectType;})){
+    typesWithProjects.push({val:'__none__', lbl:'Khác'});
+  }
+
+  var segmentId='seg-'+Date.now();
+  var segHTML='<div id="'+segmentId+'" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
+  typesWithProjects.forEach(function(t,i){
+    var cnt=t.val==='__all__'?projects.length:projects.filter(function(p){return (p.projectType||'__none__')===t.val;}).length;
+    var typeColor=t.val==='__all__'?'#000':(TYPE_PALETTE[t.val]||'#94A3B8');
+    var isFirst=i===0;
+    segHTML+='<button class="seg-btn'+(isFirst?' seg-on':'')+'" data-type="'+t.val+'"'
+      +' style="'+(isFirst?'background:'+typeColor+';color:#fff;border-color:'+typeColor:'')+';">'
+      +esc(t.lbl)+' <span style="opacity:.7">'+cnt+'</span></button>';
+  });
+  segHTML+='</div>';
+  segHTML+='<div id="plist-'+segmentId+'">'+buildProjectList('__all__')+'</div>';
+
+  // JS để handle segment click — inject sau khi render
+  var segJS='(function(){'
+    +'var wrap=document.getElementById("'+segmentId+'");'
+    +'if(!wrap) return;'
+    +'wrap.addEventListener("click",function(e){'
+    +'var btn=e.target.closest(".seg-btn");'
+    +'if(!btn) return;'
+    +'wrap.querySelectorAll(".seg-btn").forEach(function(b){'
+    +'b.classList.remove("seg-on");'
+    +'b.style.background="";b.style.color="";b.style.borderColor="";'
+    +'});'
+    +'btn.classList.add("seg-on");'
+    +'var tc=btn.dataset.type;'
+    // Re-run buildProjectList with selected type
+    +'var plist=document.getElementById("plist-'+segmentId+'");'
+    +'if(plist) plist.innerHTML=window._buildPList(tc);'
+    +'});'
+    +'})();';
+
+  // Expose buildProjectList to window for segment click handler
+  window._buildPList=buildProjectList;
+
+  var detailHTML=segHTML;
 
   var closedHTML='';
   closed.forEach(function(p){
@@ -1370,10 +1393,12 @@ function doRender(){
     +'</div>'
     +'</div>'
     +pieHTML
-    +(allActive.length?'<div class="sec-h">Chi tiết dự án</div>'+groupedListHTML:'')
-    +(closed.length?'<div class="sec-h">Closed / Cancelled</div><div class="pend-list">'+closedHTML+'</div>':'')
+    +(projects.length?'<div class="sec-h">Chi tiết dự án</div>'+detailHTML:'')
     +resourceHTML
     +'<div class="rfoot"><span>Báo cáo tiến độ team UIUX · Tuần '+week+' ('+wr.from+' – '+wr.to+')</span><span class="rfoot-r">'+esc(rep)+' · '+ds+'</span></div>';
+
+  // Inject segment interaction script
+  var sc=document.createElement('script'); sc.textContent=segJS; document.body.appendChild(sc);
 }
 
 // ── EXPORT ─────────────────────────────────────
