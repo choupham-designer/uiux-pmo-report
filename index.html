@@ -1036,10 +1036,9 @@ function doRender(){
       var drawLen=Math.max(1, pct*circumference - gapLen);
       var label=it.label+': '+it.count+' ('+Math.round(pct*100)+'%)';
 
-      // dashoffset: dịch điểm bắt đầu đến đúng vị trí
-      // SVG stroke bắt đầu từ 3 giờ, ta muốn 12 giờ → offset thêm circumference*0.25
-      // Vị trí bắt đầu = startPct của vòng tròn
-      var dashOffset = circumference*(1-startPct) + circumference*0.25;
+      // dashOffset: C*0.25 - startPct*C  (bắt đầu từ 12 giờ, đi clockwise)
+      var dashOffset = circumference * (0.25 - startPct);
+      if(dashOffset < 0) dashOffset += circumference;
 
       slices+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'"'
         +' fill="none"'
@@ -1413,7 +1412,34 @@ function doRender(){
   });
   rankHTML+='</div>';
 
-  var resourceHTML='<div class="sec-h">Nguồn lực</div>'+rankHTML;
+  // ── PIC Scorecard ──
+  var picCount={};
+  PIC_LIST.forEach(function(m){ picCount[m.name]=0; });
+  projects.forEach(function(p){
+    var s=p.projectStatus||'open';
+    if(s==='closed'||s==='cancel') return; // chỉ tính dự án active
+    if(p.pic && picCount[p.pic]!==undefined) picCount[p.pic]++;
+  });
+
+  var picCardHTML='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;">';
+  PIC_LIST.forEach(function(m){
+    var cnt=picCount[m.name]||0;
+    if(cnt===0) return; // ẩn PIC không có dự án
+    picCardHTML+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;'
+      +'padding:12px 16px;background:var(--subtle);border-radius:var(--rsm);min-width:90px;text-align:center;">'
+      +'<span style="font-size:24px;font-weight:800;color:var(--t1);line-height:1">'+cnt+'</span>'
+      +'<span style="font-size:12px;font-weight:600;color:var(--t2)">'+esc(m.name)+'</span>'
+      +'<span style="font-size:10px;color:var(--t3)">'+esc(m.role)+'</span>'
+      +'</div>';
+  });
+  picCardHTML+='</div>';
+
+  var resourceHTML='<div class="sec-h">Nguồn lực</div>'
+    +'<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);padding:16px 18px;margin-bottom:12px;">'
+    +'<div style="font-size:11px;font-weight:700;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px">PIC phụ trách</div>'
+    +picCardHTML
+    +'</div>'
+    +rankHTML;
 
   body.innerHTML=''
     +'<div class="rh"><div>'
