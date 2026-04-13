@@ -60,7 +60,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .lchip:hover{border-color:var(--accbd);background:var(--accbg)}
 .lchip.on{border-color:var(--acc);background:var(--accbg)}
 .lchip-nm{font-size:13px;font-weight:600;color:#000}
-.lchip-role{font-size:11px;color:var(--t3)}
+.lchip-role{font-size:13px;color:var(--t3)}
 .lchip.on .lchip-nm{color:var(--acctx)}
 .lchip.on .lchip-role{color:var(--acctx);opacity:.75}
 .lbtn{background:var(--pri);color:#fff;border:none;border-radius:var(--rxs);padding:11px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s}
@@ -77,7 +77,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .auth-user-pill{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--accbg);border-radius:var(--rxs);border:1px solid var(--accbd)}
 .auth-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover}
 .auth-user-name{font-size:12px;font-weight:600;color:var(--acctx);flex:1}
-.auth-signout{font-size:11px;color:var(--t3);cursor:pointer;text-decoration:underline}
+.auth-signout{font-size:13px;color:var(--t3);cursor:pointer;text-decoration:underline}
 .auth-signout:hover{color:var(--t1)}
 .sync-bar{position:fixed;bottom:1rem;right:1rem;z-index:200;background:#000;color:#fff;font-size:12px;font-weight:500;padding:7px 14px;border-radius:20px;display:none;align-items:center;gap:7px;font-family:var(--font)}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 1.5s infinite}
@@ -118,9 +118,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .sb-item.on{background:var(--accbg);border-color:var(--accbd)}
 .sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .sb-body{flex:1;min-width:0}
-.sb-nm{font-size:12px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
+.sb-nm{font-size:13px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.35}
 .sb-nm.empty{color:var(--t3);font-weight:400;font-style:italic}
-.sb-m2{font-size:11px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-m2{font-size:13px;color:var(--t3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sb-del{width:20px;height:20px;border:none;background:transparent;cursor:pointer;color:var(--t3);font-size:14px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:all .15s}
 .sb-item:hover .sb-del{opacity:1}
 .sb-del:hover{background:#FEE2E2;color:#DC2626}
@@ -151,7 +151,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .chip:hover{background:var(--accbg);color:var(--acctx)}
 .chip.on{background:var(--acc);color:#fff}
 .chip.on .crole{color:rgba(255,255,255,.75)}
-.crole{font-size:11px;color:var(--t3)}
+.crole{font-size:13px;color:var(--t3)}
 .effort-list{display:flex;flex-direction:column;gap:6px;padding-top:4px}
 .effort-row{display:flex;align-items:center;gap:10px}
 .effort-nm{font-size:12px;font-weight:600;color:var(--t1);min-width:110px}
@@ -176,10 +176,11 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.5rem}
 @media(max-width:640px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .mc{background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);padding:14px 16px}
-.mc-l{font-size:11px;font-weight:700;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+.mc-l{font-size:12px;font-weight:700;color:var(--t2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
 .mc-v{font-size:28px;font-weight:700;line-height:1}
-.mc-s{font-size:11px;color:var(--t3);margin-top:5px}
+.mc-s{font-size:13px;color:var(--t3);margin-top:5px}
 .sec-h{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--t3);margin:1.25rem 0 10px;display:flex;align-items:center;gap:8px}
+#rpt-body{font-size:14px}
 .sec-h::after{content:'';flex:1;height:1px;background:var(--bdr)}
 .cblock{background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);padding:1rem 1.25rem}
 .cbar-row{display:flex;align-items:center;gap:10px;padding:5px 0}
@@ -218,7 +219,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .done-row{display:flex;gap:14px;align-items:flex-start;background:#fff;border-radius:var(--rsm);padding:10px 14px;border-left:3px solid var(--s-don-bar)}
 .pend-nm{font-size:13px;font-weight:700;flex:0 0 auto;min-width:100px;max-width:180px}
 .pend-nt{font-size:12px;color:var(--t2);line-height:1.55}
-.rfoot{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--bdr);font-size:11px;color:var(--t3)}
+.rfoot{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--bdr);font-size:13px;color:var(--t3)}
 .rfoot-r{font-family:var(--mono)}
 .empty-msg{text-align:center;padding:3rem 1rem;font-size:13px;color:var(--t3)}
 @media(max-width:600px){.topnav{padding:0 1rem}.bsep,.bsub{display:none}.btn:not(.btn-p){display:none}}
@@ -897,16 +898,13 @@ function renderForm(){
   var statusOpts=psOpts; // kept for legacy compat
 
   form.innerHTML=''
-    +'<div class="save-bar" id="save-bar-'+p.id+'">'
-    +'<span class="save-bar-nm" id="savebar-nm-'+p.id+'">'+(p.name?esc(p.name):'Chưa đặt tên')+'</span>'
+    +'<div class="fsec">'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;border-bottom:2px solid var(--bdrm);padding-bottom:6px;">'
+    +'<input id="pn-'+p.id+'" type="text" value="'+esc(p.name)+'" placeholder="Tên dự án..."'
+    +' style="font-size:18px;font-weight:700;border:none;outline:none;background:transparent;color:var(--t1);flex:1;font-family:var(--font);">'
     +'<button class="save-bar-btn" id="save-bar-btn-'+p.id+'" onclick="submitProject('+p.id+')">'
     +'<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M7 2l5 5-5 5"/></svg>'
     +' Lưu</button>'
-    +'</div>'
-    +'<div class="fsec">'
-    +'<div style="margin-bottom:4px">'
-    +'<input id="pn-'+p.id+'" type="text" value="'+esc(p.name)+'" placeholder="Tên dự án..."'
-    +' style="font-size:18px;font-weight:700;border:none;border-bottom:2px solid var(--bdrm);outline:none;background:transparent;color:var(--t1);width:100%;font-family:var(--font);padding-bottom:6px">'
     +'</div>'
     +'<div class="fcard"><div class="fcard-t">Thông tin chung</div>'
     +'<div class="frow">'
@@ -945,14 +943,6 @@ function renderForm(){
     el.addEventListener('input',function(){p[key]=el.value;updateSbItem(p);schedRender();saveToFirebase();});
   }
   bind('pn-'+p.id,'name');
-  // Cập nhật tên trên sticky save bar khi nhập
-  var nameInput=document.getElementById('pn-'+p.id);
-  if(nameInput){
-    nameInput.addEventListener('input',function(){
-      var nm=document.getElementById('savebar-nm-'+p.id);
-      if(nm) nm.textContent=nameInput.value||'Chưa đặt tên';
-    });
-  }
   bind('pl-'+p.id,'lastWeek');
   bind('pnx-'+p.id,'nextWeek');
   bind('pno-'+p.id,'note');
@@ -1030,14 +1020,14 @@ function doRender(){
       var pct=Math.round(it.count/tot*100);
       legRows+='<div style="display:grid;grid-template-columns:10px 1fr auto auto;align-items:center;gap:0 8px;padding:4px 0;border-bottom:1px solid var(--bdr);">'
         +'<span style="width:10px;height:10px;border-radius:2px;background:'+it.color+'"></span>'
-        +'<span style="font-size:12px;color:var(--t1);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+it.label+'</span>'
-        +'<span style="font-size:12px;font-weight:700;color:var(--t1);font-family:var(--mono);text-align:right">'+it.count+'</span>'
-        +'<span style="font-size:11px;color:var(--t3);font-family:var(--mono);text-align:right;min-width:36px">'+pct+'%</span>'
+        +'<span style="font-size:13px;color:var(--t1);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+it.label+'</span>'
+        +'<span style="font-size:13px;font-weight:700;color:var(--t1);font-family:var(--mono);text-align:right">'+it.count+'</span>'
+        +'<span style="font-size:13px;color:var(--t3);font-family:var(--mono);text-align:right;min-width:36px">'+pct+'%</span>'
         +'</div>';
     });
 
     return '<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);padding:16px 18px;">'
-      +'<div style="font-size:11px;font-weight:700;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">'+title+'</div>'
+      +'<div style="font-size:12px;font-weight:700;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">'+title+'</div>'
       +'<div style="display:flex;align-items:flex-start;gap:18px;">'
       // donut
       +'<div style="flex-shrink:0;">'
@@ -1146,8 +1136,8 @@ function doRender(){
       // Group header
       html+='<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:'+typeColor+'12;border-bottom:2px solid '+typeColor+'30;">'
         +'<span style="width:8px;height:8px;border-radius:2px;background:'+typeColor+'"></span>'
-        +'<span style="font-size:11px;font-weight:700;color:'+typeColor+';letter-spacing:.04em;text-transform:uppercase">'+esc(typeLabel)+'</span>'
-        +'<span style="font-size:11px;color:var(--t3);margin-left:auto">'+grpProjects.length+' dự án</span>'
+        +'<span style="font-size:12px;font-weight:700;color:'+typeColor+';letter-spacing:.04em;text-transform:uppercase">'+esc(typeLabel)+'</span>'
+        +'<span style="font-size:13px;color:var(--t3);margin-left:auto">'+grpProjects.length+' dự án</span>'
         +'</div>';
 
       grpProjects.forEach(function(p,idx){
@@ -1167,27 +1157,27 @@ function doRender(){
 
         // ── Dòng 1: Title (Process)  ·  [Status badge]  ──
         var titleLabel = p.name
-          ? esc(p.name)+(dp?' <span style="font-size:11px;font-weight:400;color:var(--t3)">('+esc(dp.lbl)+')</span>':'')
+          ? esc(p.name)+(dp?' <span style="font-size:13px;font-weight:400;color:var(--t3)">('+esc(dp.lbl)+')</span>':'')
           : '<em style="color:var(--t3);font-weight:400">Chưa đặt tên</em>';
         html+='<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">'
-          +'<span style="font-size:13px;font-weight:700;flex:1;min-width:0;line-height:1.4">'+titleLabel+'</span>'
-          +'<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+ps.bg+';color:'+ps.tx+';flex-shrink:0;white-space:nowrap;margin-top:1px">'+ps.lbl+'</span>'
+          +'<span style="font-size:14px;font-weight:700;flex:1;min-width:0;line-height:1.4">'+titleLabel+'</span>'
+          +'<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+ps.bg+';color:'+ps.tx+';flex-shrink:0;white-space:nowrap;margin-top:1px">'+ps.lbl+'</span>'
           +'</div>';
 
-        // ── Dòng 2: PIC  ·  [Progress bar  xx%] ──
+        // ── Dòng 2: [Progress bar  xx%]  ·  PIC ──
         html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(hasNote||p.lastWeek||p.nextWeek?'10':'0')+'px;">'
-          +'<span style="font-size:11px;font-weight:600;color:var(--t2);flex:1;min-width:0">'+(p.pic?esc(p.pic):'&nbsp;')+'</span>'
           +'<div style="width:100px;height:5px;background:rgba(0,0,0,.07);border-radius:3px;overflow:hidden;flex-shrink:0;">'
           +'<div style="height:100%;width:'+pct+'%;background:'+ps.color+';border-radius:3px;"></div></div>'
-          +'<span style="font-size:11px;font-weight:700;color:var(--t2);font-family:var(--mono);flex-shrink:0;min-width:30px;text-align:right">'+pct+'%</span>'
+          +'<span style="font-size:13px;font-weight:700;color:var(--t2);font-family:var(--mono);flex-shrink:0;min-width:30px">'+pct+'%</span>'
+          +'<span style="font-size:13px;font-weight:600;color:var(--t3);flex:1;min-width:0;text-align:right">'+(p.pic?esc(p.pic):'')+'</span>'
           +'</div>';
 
         // ── Dòng 3: Risk (chỉ hiện khi có note) ──
         if(hasNote){
-          html+='<div style="font-size:11px;display:flex;align-items:flex-start;gap:5px;margin-bottom:'+(p.lastWeek||p.nextWeek?'10':'0')+'px;">'
+          html+='<div style="font-size:13px;display:flex;align-items:flex-start;gap:5px;margin-bottom:'+(p.lastWeek||p.nextWeek?'10':'0')+'px;">'
             +'<span style="flex-shrink:0">💬</span>'
             +'<span style="color:var(--t3);font-weight:600;flex-shrink:0">Risk:</span>'
-            +'<span style="color:#92400E;background:#FFFBEB;padding:2px 8px;border-radius:4px;border:1px solid #FDE68A;line-height:1.6;flex:1">'+esc(p.note)+'</span>'
+            +'<span style="font-size:13px;color:#92400E;background:#FFFBEB;padding:2px 8px;border-radius:4px;border:1px solid #FDE68A;line-height:1.6;flex:1">'+esc(p.note)+'</span>'
             +'</div>';
         }
 
@@ -1204,12 +1194,12 @@ function doRender(){
           html+='<div>'
             +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">'+iconCal('#94A3B8')
             +'<span style="font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em">Tuần trước</span></div>'
-            +(p.lastWeek?'<div style="font-size:11px;color:var(--t2);line-height:1.5">'+esc(p.lastWeek)+'</div>':'<div style="font-size:11px;color:var(--t3)">—</div>')
+            +(p.lastWeek?'<div style="font-size:13px;color:var(--t2);line-height:1.5">'+esc(p.lastWeek)+'</div>':'<div style="font-size:13px;color:var(--t3)">—</div>')
             +'</div>';
           html+='<div>'
             +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">'+iconCal('#2563EB')
             +'<span style="font-size:9px;font-weight:700;color:#2563EB;text-transform:uppercase;letter-spacing:.05em">Tuần tới</span></div>'
-            +(p.nextWeek?'<div style="font-size:11px;color:var(--t2);line-height:1.5">'+esc(p.nextWeek)+'</div>':'<div style="font-size:11px;color:var(--t3)">—</div>')
+            +(p.nextWeek?'<div style="font-size:13px;color:var(--t2);line-height:1.5">'+esc(p.nextWeek)+'</div>':'<div style="font-size:13px;color:var(--t3)">—</div>')
             +'</div>';
           html+='</div>';
         }
@@ -1294,7 +1284,7 @@ function doRender(){
 
   var rankHTML='<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);padding:16px 18px;">';
   rankHTML+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
-    +'<div style="font-size:11px;font-weight:700;color:var(--t2);letter-spacing:.06em;text-transform:uppercase">Phân bổ effort</div>'
+    +'<div style="font-size:12px;font-weight:700;color:var(--t2);letter-spacing:.06em;text-transform:uppercase">Phân bổ effort</div>'
     +'<div style="display:flex;gap:10px;">'
     +'<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#DC2626"><span style="width:8px;height:8px;border-radius:2px;background:#DC2626"></span>Overload &gt;100%</span>'
     +'<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#16A34A"><span style="width:8px;height:8px;border-radius:2px;background:#16A34A"></span>Healthy 80-100%</span>'
@@ -1311,10 +1301,10 @@ function doRender(){
 
     rankHTML+='<div style="display:grid;grid-template-columns:24px 100px 1fr 52px 60px 70px;align-items:center;gap:8px;padding:6px 0;'+(idx<memberEfforts.length-1?'border-bottom:1px solid var(--bdr);':'')+'}">'
       // Rank number
-      +'<span style="font-size:11px;font-weight:700;color:var(--t3);font-family:var(--mono);text-align:right">'+(idx+1)+'</span>'
+      +'<span style="font-size:12px;font-weight:700;color:var(--t3);font-family:var(--mono);text-align:right">'+(idx+1)+'</span>'
       // Name + role
       +'<div style="min-width:0;">'
-      +'<div style="font-size:12px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(m.name)+'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(m.name)+'</div>'
       +'<div style="font-size:10px;color:var(--t3)">'+esc(m.role)+'</div>'
       +'</div>'
       // Bar
@@ -1327,9 +1317,9 @@ function doRender(){
       +(overW>0?'<div style="position:absolute;left:'+normalW+'%;top:0;height:100%;width:'+overW+'%;background:#FCA5A5;border-radius:0 5px 5px 0;"></div>':'')
       +'</div>'
       // Effort %
-      +'<span style="font-size:12px;font-weight:700;color:'+col+';font-family:var(--mono);text-align:right">'+(m.effort>0?m.effort+'%':'—')+'</span>'
+      +'<span style="font-size:13px;font-weight:700;color:'+col+';font-family:var(--mono);text-align:right">'+(m.effort>0?m.effort+'%':'—')+'</span>'
       // Số dự án
-      +'<span style="font-size:11px;color:var(--t3);text-align:center">'+(m.projects>0?m.projects+' dự án':'—')+'</span>'
+      +'<span style="font-size:13px;color:var(--t3);text-align:center">'+(m.projects>0?m.projects+' dự án':'—')+'</span>'
       // Status label
       +'<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+lbl.bg+';color:'+lbl.tx+';text-align:center;white-space:nowrap">'+effortLabel(m.effort)+'</span>'
       +'</div>';
@@ -1339,14 +1329,22 @@ function doRender(){
   var resourceHTML='<div class="sec-h">Nguồn lực</div>'+rankHTML;
 
   body.innerHTML=''
-    +'<div class="rh"><div><div class="rh-kick">FIS · '+esc(team)+'</div><div class="rh-title">Báo cáo tiến độ dự án</div><div class="rh-sub">Tổng hợp trạng thái & kế hoạch tuần tới</div></div>'
-    +'<div class="rh-r"><div class="rh-wk">Tuần '+week+' · '+now.getFullYear()+'</div><div class="rh-by" style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:2px">'+wr.from+' – '+wr.to+'</div><div class="rh-by">Người lập: '+esc(rep)+'</div><div class="rh-by" style="margin-top:2px">'+ds+'</div></div>'
+    +'<div class="rh"><div>'
+    +'<div class="rh-kick">FIS · '+esc(team)+'</div>'
+    +'<div class="rh-title">Báo cáo tiến độ team UIUX</div>'
+    +'<div class="rh-sub">Tuần '+week+' &nbsp;·&nbsp; '+wr.from+' – '+wr.to+'</div>'
+    +'</div>'
+    +'<div class="rh-r">'
+    +'<div class="rh-wk">'+esc(rep)+'</div>'
+    +'<div class="rh-by">'+ds+'</div>'
+    +'</div>'
+    +'</div>'
     +'</div>'
     +pieHTML
     +(allActive.length?'<div class="sec-h">Chi tiết dự án</div>'+groupedListHTML:'')
     +(closed.length?'<div class="sec-h">Closed / Cancelled</div><div class="pend-list">'+closedHTML+'</div>':'')
     +resourceHTML
-    +'<div class="rfoot"><span>Báo cáo tuần '+week+' ('+wr.from+' – '+wr.to+') · FIS · '+esc(team)+'</span><span class="rfoot-r">Người lập: '+esc(rep)+'</span></div>';
+    +'<div class="rfoot"><span>Báo cáo tiến độ team UIUX · Tuần '+week+' ('+wr.from+' – '+wr.to+')</span><span class="rfoot-r">'+esc(rep)+' · '+ds+'</span></div>';
 }
 
 // ── EXPORT ─────────────────────────────────────
