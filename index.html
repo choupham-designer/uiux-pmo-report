@@ -1147,7 +1147,7 @@ function doRender(){
     var dp=getDP(p.designProcess);
     var pct=Math.max(0,Math.min(100,p.progress||0));
     var hasNote=p.note&&p.note.trim();
-    var html='<div style="padding:14px 16px;border-bottom:1px solid '+(isLast?'transparent':'var(--bdr)')+';">';
+    var html='<div style="padding:14px 16px;">';
 
     // Dòng 1: Title (Process) · [Status badge]
     var titleLabel = p.name
@@ -1210,18 +1210,20 @@ function doRender(){
   }
 
   function buildProjectList(filterType){
-    // filterType: null = tất cả, string = lọc theo projectType
     var filtered=projects.filter(function(p){
       if(filterType && filterType!=='__all__') return (p.projectType||'__none__')===filterType;
       return true;
     });
     filtered=sortByStatus(filtered);
     if(!filtered.length) return '<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px">Không có dự án</div>';
-    var html='';
-    filtered.forEach(function(p,i){
-      html+=buildProjectRow(p, i===filtered.length-1);
+    var html='<div style="display:flex;flex-direction:column;gap:8px;">';
+    filtered.forEach(function(p){
+      html+='<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);overflow:hidden;">'
+        +buildProjectRow(p, true)
+        +'</div>';
     });
-    return '<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);overflow:hidden;">'+html+'</div>';
+    html+='</div>';
+    return html;
   }
 
   // ── Segment tabs + counts ──
