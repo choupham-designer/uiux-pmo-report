@@ -1033,8 +1033,8 @@ function doRender(){
 
   // Màu loại dự án — dùng palette blue-teal có độ tương phản rõ
   var TYPE_PALETTE = {
-    'okr':'#1D4ED8','s7':'#0369A1','mbf':'#0F766E','ida':'#15803D',
-    'es':'#6D28D9','gs':'#7C3AED','nb':'#BE185D','other':'#64748B'
+    'okr':'#E63946','s7':'#F4A261','mbf':'#2A9D8F','ida':'#457B9D',
+    'es':'#8338EC','gs':'#FB5607','nb':'#06D6A0','other':'#8D99AE'
   };
 
   var typeItems=[];
@@ -1146,48 +1146,42 @@ function doRender(){
         html+='<div style="padding:10px 14px;border-bottom:1px solid '+(isLast?'transparent':'var(--bdr)')+';">';
 
         // ── Dòng 1: Tên | PS badge | Progress bar | % | Số DA ──
-        html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">'
-          // Tên
+        html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">'
           +'<span style="font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.name||'')+'">'
           +(p.name?esc(p.name):'<em style="color:var(--t3);font-weight:400">Chưa đặt tên</em>')+'</span>'
-          // Project Status badge
           +'<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+ps.bg+';color:'+ps.tx+';flex-shrink:0;white-space:nowrap">'+ps.lbl+'</span>'
-          // Progress bar mini
           +'<div style="width:80px;height:5px;background:rgba(0,0,0,.07);border-radius:3px;overflow:hidden;flex-shrink:0;">'
           +'<div style="height:100%;width:'+pct+'%;background:'+ps.color+';border-radius:3px;"></div></div>'
-          // %
           +'<span style="font-size:11px;font-weight:700;color:var(--t2);font-family:var(--mono);flex-shrink:0;min-width:30px;text-align:right">'+pct+'%</span>'
-          // Số DA label (cột nhỏ bên phải như sketch "01 DA")
-          +'<span style="font-size:10px;color:var(--t3);flex-shrink:0;min-width:30px;text-align:right;font-family:var(--mono)">'+(idx+1<10?'0'+(idx+1):(idx+1))+' DA</span>'
           +'</div>';
 
-        // ── Dòng 2: Giai đoạn · PIC1 · PIC2 ──
-        var subInfo=[];
-        if(dp) subInfo.push(esc(dp.lbl));
-        if(p.pic) subInfo.push(esc(p.pic));
-        if(memberNames&&memberNames!==esc(p.pic||'')) subInfo.push(memberNames);
-        if(subInfo.length){
-          html+='<div style="font-size:11px;color:var(--t3);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+subInfo.join(' · ')+'</div>';
+        // ── Dòng 2: ProjectName (Design Process) · PIC ──
+        var subParts=[];
+        if(dp && p.name) subParts.push(esc(p.name)+' <span style="color:var(--t3);font-weight:400">('+esc(dp.lbl)+')</span>');
+        else if(dp) subParts.push('('+esc(dp.lbl)+')');
+        if(p.pic) subParts.push('<span style="font-weight:600;color:var(--t2)">'+esc(p.pic)+'</span>');
+        if(subParts.length){
+          html+='<div style="font-size:11px;color:var(--t2);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+subParts.join(' · ')+'</div>';
         }
 
-        // ── Dòng 3: Risk (luôn hiện, hiện "—" nếu không có) ──
-        html+='<div style="font-size:11px;margin-bottom:'+(p.lastWeek||p.nextWeek?'6':'0')+'px;">'
+        // ── Dòng 3: Risk ──
+        html+='<div style="font-size:11px;margin-bottom:'+(p.lastWeek||p.nextWeek?'10':'0')+'px;">'
           +'<span style="color:var(--t3);font-weight:600">Risk: </span>'
           +(hasNote
-            ?'<span style="color:#92400E;background:#FFFBEB;padding:1px 6px;border-radius:4px;border:1px solid #FDE68A">'+esc(p.note)+'</span>'
+            ?'<span style="color:#92400E;background:#FFFBEB;padding:2px 8px;border-radius:4px;border:1px solid #FDE68A;line-height:1.6">'+esc(p.note)+'</span>'
             :'<span style="color:var(--t3)">—</span>')
           +'</div>';
 
-        // ── Dòng 4: Tuần trước | Tuần tới (2 cột song song) ──
+        // ── Dòng 4: Tuần trước | Tuần tới ──
         if(p.lastWeek||p.nextWeek){
-          html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:6px;border-top:1px dashed rgba(0,0,0,.08);">';
+          html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:10px;border-top:1px dashed rgba(0,0,0,.08);">';
           html+='<div>'
-            +'<div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">↩ Tuần trước</div>'
-            +(p.lastWeek?'<div style="font-size:11px;color:var(--t2);line-height:1.45">'+esc(p.lastWeek)+'</div>':'<div style="font-size:11px;color:var(--t3)">—</div>')
+            +'<div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">↩ Tuần trước</div>'
+            +(p.lastWeek?'<div style="font-size:11px;color:var(--t2);line-height:1.5">'+esc(p.lastWeek)+'</div>':'<div style="font-size:11px;color:var(--t3)">—</div>')
             +'</div>';
           html+='<div>'
-            +'<div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">📅 Tuần tới</div>'
-            +(p.nextWeek?'<div style="font-size:11px;color:var(--t2);line-height:1.45">'+esc(p.nextWeek)+'</div>':'<div style="font-size:11px;color:var(--t3)">—</div>')
+            +'<div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">📅 Tuần tới</div>'
+            +(p.nextWeek?'<div style="font-size:11px;color:var(--t2);line-height:1.5">'+esc(p.nextWeek)+'</div>':'<div style="font-size:11px;color:var(--t3)">—</div>')
             +'</div>';
           html+='</div>';
         }
