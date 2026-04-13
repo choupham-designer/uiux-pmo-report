@@ -1026,29 +1026,31 @@ function doRender(){
     var gapDeg=4; // gap giữa các slice tính bằng độ
 
     var slices='';
-    var currentDeg=-90; // bắt đầu từ 12 giờ
+    var startPct=0; // tích lũy % bắt đầu của slice hiện tại
 
     items.forEach(function(it){
       if(it.count===0) return;
       var pct=it.count/tot;
-      var sliceDeg=pct*360;
-      // Arc thực tế = sliceDeg - gap (trừ gap ở cuối)
-      var drawDeg=Math.max(0.5, sliceDeg-gapDeg);
-      var drawLen=(drawDeg/360)*circumference;
+      // Chiều dài arc draw (trừ gap tính bằng px)
+      var gapLen=(gapDeg/360)*circumference;
+      var drawLen=Math.max(1, pct*circumference - gapLen);
       var label=it.label+': '+it.count+' ('+Math.round(pct*100)+'%)';
 
-      // Mỗi circle xoay về đúng góc bắt đầu, dasharray vẽ đúng arc
+      // dashoffset: dịch điểm bắt đầu đến đúng vị trí
+      // SVG stroke bắt đầu từ 3 giờ, ta muốn 12 giờ → offset thêm circumference*0.25
+      // Vị trí bắt đầu = startPct của vòng tròn
+      var dashOffset = circumference*(1-startPct) + circumference*0.25;
+
       slices+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'"'
         +' fill="none"'
         +' stroke="'+it.color+'"'
         +' stroke-width="'+strokeW+'"'
         +' stroke-linecap="round"'
         +' stroke-dasharray="'+drawLen.toFixed(2)+' '+(circumference-drawLen).toFixed(2)+'"'
-        +' stroke-dashoffset="'+((circumference*0.25)).toFixed(2)+'"'
-        +' transform="rotate('+currentDeg.toFixed(2)+' '+cx+' '+cy+')">'
+        +' stroke-dashoffset="'+dashOffset.toFixed(2)+'">'
         +'<title>'+label+'</title>'
         +'</circle>';
-      currentDeg+=sliceDeg;
+      startPct+=pct;
     });
 
     // Legend
@@ -1291,10 +1293,10 @@ function doRender(){
       var ps=getPS(p.projectStatus||'open');
       var pct=Math.max(0,Math.min(100,p.progress||0));
       var isLast=i===progressArr.length-1;
-      progressHTML+='<div style="display:grid;grid-template-columns:1fr 120px 36px;align-items:center;gap:10px;padding:7px 0;'+(isLast?'':'border-bottom:1px solid var(--bdr);">')+'">'
+      progressHTML+='<div style="display:grid;grid-template-columns:1fr 120px 36px;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid '+(isLast?'transparent':'var(--bdr)')+';">'
         +'<span style="font-size:13px;font-weight:600;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.name||'')+'">'+(p.name?esc(p.name):'Chưa đặt tên')+'</span>'
         +'<div style="height:6px;background:rgba(0,0,0,.06);border-radius:4px;overflow:hidden;">'
-        +'<div style="height:100%;width:'+pct+'%;background:'+ps.color+';border-radius:4px;transition:width .4s"></div>'
+        +'<div style="height:100%;width:'+pct+'%;background:'+ps.color+';border-radius:4px;"></div>'
         +'</div>'
         +'<span style="font-size:12px;font-weight:700;color:var(--t2);font-family:var(--mono);text-align:right">'+pct+'%</span>'
         +'</div>';
