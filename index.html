@@ -97,6 +97,16 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .btn-p:hover{background:var(--prih)}
 .btn-p:disabled{opacity:.55;cursor:not-allowed}
 .btn svg{width:13px;height:13px;flex-shrink:0}
+/* Icon-only tertiary button (Xuất PNG) */
+.btn-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:var(--rxs);border:1px solid var(--bdrm);background:#fff;color:var(--t2);cursor:pointer;transition:all .15s;flex-shrink:0}
+.btn-icon:hover{background:var(--subtle);color:var(--t1)}
+.btn-icon svg{width:15px;height:15px}
+/* Sticky save bar trong form */
+.save-bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px;background:#fff;border-bottom:1px solid var(--bdr);margin:-16px -16px 16px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.save-bar-nm{font-size:12px;font-weight:600;color:var(--t2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.save-bar-btn{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--rxs);border:none;background:var(--pri);color:#fff;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;transition:opacity .15s}
+.save-bar-btn:hover{opacity:.88}
+.save-bar-btn:disabled{opacity:.55;cursor:not-allowed}
 .panel{display:none}
 .panel.on{display:block}
 .shell{display:flex;align-items:flex-start;max-width:1100px;margin:0 auto;min-height:calc(100vh - 56px)}
@@ -248,14 +258,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
     <span class="buser" id="brand-user" onclick="logoutUser()" title="Đăng xuất"></span>
   </div>
   <div class="nav-act">
+    <button class="btn" id="nav-to-report" onclick="switchTab('report')" style="display:none">Xem báo cáo →</button>
+    <button class="btn-icon" id="exp-btn" onclick="doExport()" style="display:none" title="Xuất PNG">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M5 7l3 3 3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
+    </button>
     <button class="btn btn-p" id="nav-to-input" onclick="switchTab('input')" style="display:none">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="2" width="9" height="9" rx="1.5"/><path d="M5 6.5h3M6.5 5v3"/></svg>
       Lập báo cáo
-    </button>
-    <button class="btn" id="nav-to-report" onclick="switchTab('report')" style="display:none">Xem báo cáo →</button>
-    <button class="btn btn-p" id="exp-btn" onclick="doExport()" style="display:none">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M5 7l3 3 3-3M2 12v1a1 1 0 001 1h10a1 1 0 001-1v-1"/></svg>
-      Xuất PNG
     </button>
   </div>
 </nav>
@@ -745,7 +754,7 @@ function submitProject(pid){
   projects.forEach(function(pr){ syncP(pr); });
   if(!_fbRef){ showSync('Chưa kết nối Firebase!',3000); return; }
   var hint=document.getElementById('shint-'+pid);
-  var btn=document.querySelector('#pane-form .sub-btn');
+  var btn=document.getElementById('save-bar-btn-'+p.id) || document.querySelector('#pane-form .save-bar-btn');
   if(btn){btn.disabled=true;btn.textContent='Đang lưu...';}
   var data={};
   projects.forEach(function(pr,i){
@@ -763,7 +772,7 @@ function submitProject(pid){
   _isSaving=true;
   _fbRef.set(data)
     .then(function(){
-      if(btn){btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M7 2l5 5-5 5"/></svg> Lưu dự án';}
+      if(btn){btn.disabled=false;btn.innerHTML='<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M7 2l5 5-5 5"/></svg> Lưu';}
       if(hint){hint.style.color='#16A34A';hint.textContent='✓ Đã lưu thành công';setTimeout(function(){if(hint)hint.textContent='';},3000);}
       setTimeout(function(){_isSaving=false;},1000);
     })
@@ -888,6 +897,12 @@ function renderForm(){
   var statusOpts=psOpts; // kept for legacy compat
 
   form.innerHTML=''
+    +'<div class="save-bar" id="save-bar-'+p.id+'">'
+    +'<span class="save-bar-nm" id="savebar-nm-'+p.id+'">'+(p.name?esc(p.name):'Chưa đặt tên')+'</span>'
+    +'<button class="save-bar-btn" id="save-bar-btn-'+p.id+'" onclick="submitProject('+p.id+')">'
+    +'<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M7 2l5 5-5 5"/></svg>'
+    +' Lưu</button>'
+    +'</div>'
     +'<div class="fsec">'
     +'<div style="margin-bottom:4px">'
     +'<input id="pn-'+p.id+'" type="text" value="'+esc(p.name)+'" placeholder="Tên dự án..."'
@@ -922,9 +937,6 @@ function renderForm(){
     +'</div>'
     +'<div class="fcard"><div class="fcard-t">Nguồn lực</div>'
     +'<div id="mem-area-'+p.id+'">'+buildMemberHTML(p)+'</div></div>'
-    +'<button class="sub-btn" onclick="submitProject('+p.id+')">'
-    +'<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M7 2l5 5-5 5"/></svg>'
-    +' Lưu dự án</button>'
     +'<div class="sub-hint" id="shint-'+p.id+'"></div>'
     +'</div><div class="pad"></div>';
 
@@ -933,6 +945,14 @@ function renderForm(){
     el.addEventListener('input',function(){p[key]=el.value;updateSbItem(p);schedRender();saveToFirebase();});
   }
   bind('pn-'+p.id,'name');
+  // Cập nhật tên trên sticky save bar khi nhập
+  var nameInput=document.getElementById('pn-'+p.id);
+  if(nameInput){
+    nameInput.addEventListener('input',function(){
+      var nm=document.getElementById('savebar-nm-'+p.id);
+      if(nm) nm.textContent=nameInput.value||'Chưa đặt tên';
+    });
+  }
   bind('pl-'+p.id,'lastWeek');
   bind('pnx-'+p.id,'nextWeek');
   bind('pno-'+p.id,'note');
