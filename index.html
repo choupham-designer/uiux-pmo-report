@@ -737,9 +737,29 @@ function setPhase(pid,val){
 function setPIC(pid,name){
   var p=null; for(var i=0;i<projects.length;i++){if(projects[i].id===pid){p=projects[i];break;}}
   if(!p) return;
+  var prev=p.pic;
   p.pic=(p.pic===name)?'':name;
+
+  // Nếu chọn PIC mới → tự động thêm vào members với effort 33% (nếu chưa có)
+  if(p.pic){
+    var found=false;
+    for(var i=0;i<p.members.length;i++){
+      if(p.members[i].name===p.pic){ found=true; break; }
+    }
+    if(!found){
+      // Sync effort input hiện tại trước khi thêm
+      document.querySelectorAll('.eff-pct[data-pid="'+pid+'"]').forEach(function(el){
+        for(var j=0;j<p.members.length;j++){if(p.members[j].name===el.dataset.member){p.members[j].pct=el.value;break;}}
+      });
+      p.members.push({name:p.pic, pct:'33'});
+    }
+  }
+
   var area=document.getElementById('pic-area-'+pid);
   if(area) area.innerHTML=buildPicHTML(p);
+  // Refresh member area để hiện effort mới
+  var marea=document.getElementById('mem-area-'+pid);
+  if(marea){marea.innerHTML=buildMemberHTML(p);bindPct(p);}
   updateSbItem(p); schedRender(); saveToFirebase();
 }
 function toggleMember(pid,name){
@@ -1421,12 +1441,12 @@ function doRender(){
     if(p.pic && picCount[p.pic]!==undefined) picCount[p.pic]++;
   });
 
-  var picCardHTML='<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;">';
+  var picCardHTML='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-bottom:14px;">';
   PIC_LIST.forEach(function(m){
     var cnt=picCount[m.name]||0;
-    if(cnt===0) return; // ẩn PIC không có dự án
+    if(cnt===0) return;
     picCardHTML+='<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;'
-      +'padding:12px 16px;background:var(--subtle);border-radius:var(--rsm);min-width:90px;text-align:center;">'
+      +'padding:14px 10px;background:var(--subtle);border-radius:var(--rsm);text-align:center;">'
       +'<span style="font-size:24px;font-weight:800;color:var(--t1);line-height:1">'+cnt+'</span>'
       +'<span style="font-size:12px;font-weight:600;color:var(--t2)">'+esc(m.name)+'</span>'
       +'<span style="font-size:10px;color:var(--t3)">'+esc(m.role)+'</span>'
