@@ -1097,20 +1097,15 @@ function doRender(){
   }
 
   // ── Grouped List: nhóm theo Loại dự án ──
-  // Gộp tất cả projects (kể cả pending/done/closed) vào grouped list
   function buildGroupedList(allProjects){
     if(!allProjects.length) return '';
 
-    // Nhóm theo projectType
-    var groups={}; // {typeVal: [projects]}
-    var typeOrder=[];
+    var groups={}, typeOrder=[];
     allProjects.forEach(function(p){
       var k=p.projectType||'__none__';
       if(!groups[k]){ groups[k]=[]; typeOrder.push(k); }
       groups[k].push(p);
     });
-
-    // Sắp xếp typeOrder theo thứ tự projectTypes
     typeOrder.sort(function(a,b){
       var ia=99,ib=99;
       projectTypes.forEach(function(t,i){ if(t.val===a) ia=i; if(t.val===b) ib=i; });
@@ -1118,7 +1113,7 @@ function doRender(){
       return ia-ib;
     });
 
-    var html='<div style="display:flex;flex-direction:column;gap:16px;">';
+    var html='<div style="display:flex;flex-direction:column;gap:14px;">';
 
     typeOrder.forEach(function(typeVal){
       var grpProjects=groups[typeVal];
@@ -1126,15 +1121,15 @@ function doRender(){
       var typeColor=TYPE_PALETTE[typeVal]||'#94A3B8';
       var typeLabel=pt?pt.lbl:'Chưa phân loại';
 
-      // Group header
       html+='<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);overflow:hidden;">';
-      html+='<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:'+typeColor+'14;border-bottom:1px solid var(--bdr);">'
-        +'<span style="width:10px;height:10px;border-radius:2px;background:'+typeColor+';flex-shrink:0"></span>'
-        +'<span style="font-size:12px;font-weight:700;color:'+typeColor+'">'+typeLabel+'</span>'
+
+      // Group header
+      html+='<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:'+typeColor+'12;border-bottom:2px solid '+typeColor+'30;">'
+        +'<span style="width:8px;height:8px;border-radius:2px;background:'+typeColor+'"></span>'
+        +'<span style="font-size:11px;font-weight:700;color:'+typeColor+';letter-spacing:.04em;text-transform:uppercase">'+esc(typeLabel)+'</span>'
         +'<span style="font-size:11px;color:var(--t3);margin-left:auto">'+grpProjects.length+' dự án</span>'
         +'</div>';
 
-      // Rows
       grpProjects.forEach(function(p,idx){
         var ps=getPS(p.projectStatus||'open');
         var dp=getDP(p.designProcess);
@@ -1142,59 +1137,65 @@ function doRender(){
         var hasNote=p.note&&p.note.trim();
         var isLast=idx===grpProjects.length-1;
 
-        html+='<div style="padding:10px 14px;'+(isLast?'':'border-bottom:1px solid var(--bdr);')+'">';
+        // Members list (tên thôi, không cần effort ở đây)
+        var memberNames='';
+        if(p.members&&p.members.length){
+          memberNames=p.members.map(function(m){return esc(m.name);}).join(' · ');
+        }
 
-        // Row 1: Tên + Status badge + % + ⚠️ nếu có note
-        html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-          +'<span style="font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+        html+='<div style="padding:10px 14px;border-bottom:1px solid '+(isLast?'transparent':'var(--bdr)')+';">';
+
+        // ── Dòng 1: Tên | PS badge | Progress bar | % | Số DA ──
+        html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">'
+          // Tên
+          +'<span style="font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+esc(p.name||'')+'">'
           +(p.name?esc(p.name):'<em style="color:var(--t3);font-weight:400">Chưa đặt tên</em>')+'</span>'
-          // Status badge
-          +'<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+ps.bg+';color:'+ps.tx+';flex-shrink:0">'+ps.lbl+'</span>'
-          // Design Process badge
-          +(dp?'<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:#EDE9FE;color:#5B21B6;flex-shrink:0;display:none" class="dp-badge">'+esc(dp.lbl)+'</span>':'')
-          // Risk indicator
-          +(hasNote?'<span title="'+esc(p.note)+'" style="font-size:13px;flex-shrink:0;cursor:default">⚠️</span>':'')
+          // Project Status badge
+          +'<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+ps.bg+';color:'+ps.tx+';flex-shrink:0;white-space:nowrap">'+ps.lbl+'</span>'
+          // Progress bar mini
+          +'<div style="width:80px;height:5px;background:rgba(0,0,0,.07);border-radius:3px;overflow:hidden;flex-shrink:0;">'
+          +'<div style="height:100%;width:'+pct+'%;background:'+ps.color+';border-radius:3px;"></div></div>'
+          // %
+          +'<span style="font-size:11px;font-weight:700;color:var(--t2);font-family:var(--mono);flex-shrink:0;min-width:30px;text-align:right">'+pct+'%</span>'
+          // Số DA label (cột nhỏ bên phải như sketch "01 DA")
+          +'<span style="font-size:10px;color:var(--t3);flex-shrink:0;min-width:30px;text-align:right;font-family:var(--mono)">'+(idx+1<10?'0'+(idx+1):(idx+1))+' DA</span>'
           +'</div>';
 
-        // Row 2: Process + PIC + Progress bar
-        html+='<div style="display:flex;align-items:center;gap:10px;">'
-          // Design Process
-          +(dp?'<span style="font-size:11px;color:var(--t2);flex-shrink:0;min-width:90px">'+esc(dp.lbl)+'</span>':'<span style="min-width:90px"></span>')
-          // PIC
-          +(p.pic?'<span style="font-size:11px;color:var(--t3);flex-shrink:0">'+esc(p.pic)+'</span>':'')
-          // Progress bar
-          +'<div style="flex:1;display:flex;align-items:center;gap:6px;">'
-          +'<div style="flex:1;height:5px;background:rgba(0,0,0,.07);border-radius:3px;overflow:hidden;">'
-          +'<div style="height:100%;width:'+pct+'%;background:'+ps.color+';border-radius:3px;"></div></div>'
-          +'<span style="font-size:11px;font-weight:600;color:var(--t2);font-family:var(--mono);min-width:32px;text-align:right">'+pct+'%</span>'
-          +'</div></div>';
+        // ── Dòng 2: Giai đoạn · PIC1 · PIC2 ──
+        var subInfo=[];
+        if(dp) subInfo.push(esc(dp.lbl));
+        if(p.pic) subInfo.push(esc(p.pic));
+        if(memberNames&&memberNames!==esc(p.pic||'')) subInfo.push(memberNames);
+        if(subInfo.length){
+          html+='<div style="font-size:11px;color:var(--t3);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+subInfo.join(' · ')+'</div>';
+        }
 
-        // Row 3: Tuần trước / Tuần tới (nếu có)
+        // ── Dòng 3: Risk (luôn hiện, hiện "—" nếu không có) ──
+        html+='<div style="font-size:11px;margin-bottom:'+(p.lastWeek||p.nextWeek?'6':'0')+'px;">'
+          +'<span style="color:var(--t3);font-weight:600">Risk: </span>'
+          +(hasNote
+            ?'<span style="color:#92400E;background:#FFFBEB;padding:1px 6px;border-radius:4px;border:1px solid #FDE68A">'+esc(p.note)+'</span>'
+            :'<span style="color:var(--t3)">—</span>')
+          +'</div>';
+
+        // ── Dòng 4: Tuần trước | Tuần tới (2 cột song song) ──
         if(p.lastWeek||p.nextWeek){
-          html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:7px;padding-top:7px;border-top:1px dashed var(--bdr);">';
-          html+=p.lastWeek
-            ?'<div><div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">↩ Tuần trước</div>'
-              +'<div style="font-size:11px;color:var(--t2);line-height:1.45">'+esc(p.lastWeek)+'</div></div>'
-            :'<div></div>';
-          html+=p.nextWeek
-            ?'<div><div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">📅 Tuần tới</div>'
-              +'<div style="font-size:11px;color:var(--t2);line-height:1.45">'+esc(p.nextWeek)+'</div></div>'
-            :'<div></div>';
+          html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-top:6px;border-top:1px dashed rgba(0,0,0,.08);">';
+          html+='<div>'
+            +'<div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">↩ Tuần trước</div>'
+            +(p.lastWeek?'<div style="font-size:11px;color:var(--t2);line-height:1.45">'+esc(p.lastWeek)+'</div>':'<div style="font-size:11px;color:var(--t3)">—</div>')
+            +'</div>';
+          html+='<div>'
+            +'<div style="font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">📅 Tuần tới</div>'
+            +(p.nextWeek?'<div style="font-size:11px;color:var(--t2);line-height:1.45">'+esc(p.nextWeek)+'</div>':'<div style="font-size:11px;color:var(--t3)">—</div>')
+            +'</div>';
           html+='</div>';
         }
 
-        // Row 4: Ghi chú/Risk (nếu có)
-        if(hasNote){
-          html+='<div style="margin-top:6px;padding:6px 10px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:5px;">'
-            +'<div style="font-size:9px;font-weight:700;color:#B45309;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">⚠️ Risk / Ghi chú</div>'
-            +'<div style="font-size:11px;color:#92400E;line-height:1.45">'+esc(p.note)+'</div>'
-            +'</div>';
-        }
-
-        html+='</div>'; // end row
+        html+='</div>'; // end project row
       });
 
-      html+='</div>'; // end group
+      html+='</div>'; // end group card
     });
 
     html+='</div>';
@@ -1219,15 +1220,109 @@ function doRender(){
       +'</div></div>';
   });
 
+  // ── Resource Ranking Chart ──
+  // Tính tổng effort từng member qua tất cả dự án active
+  var effortMap={}; // {name: totalEffort}
+  var projectCountMap={}; // {name: số dự án}
+  ALL_MEMBERS.forEach(function(m){
+    effortMap[m.name]=0;
+    projectCountMap[m.name]=0;
+  });
+  projects.forEach(function(p){
+    if(!p.members||!p.members.length) return;
+    var s=p.projectStatus||'open';
+    if(s==='closed'||s==='cancel') return; // bỏ qua dự án đã đóng
+    p.members.forEach(function(m){
+      if(effortMap[m.name]===undefined) return;
+      var pct=parseFloat(m.pct)||0;
+      effortMap[m.name]+=pct;
+      if(pct>0) projectCountMap[m.name]++;
+    });
+  });
+
+  // Tạo mảng sorted high → low
+  var memberEfforts=ALL_MEMBERS.map(function(m){
+    return {name:m.name, role:m.role, effort:effortMap[m.name]||0, projects:projectCountMap[m.name]||0};
+  }).sort(function(a,b){ return b.effort-a.effort; });
+
+  var maxEffort=memberEfforts[0]?Math.max(memberEfforts[0].effort,100):100;
+
+  // Color logic: overload (>100%) → đỏ, healthy (50-100%) → xanh, light (<50%) → xám
+  function effortColor(e){
+    if(e>100) return '#DC2626';
+    if(e>=80)  return '#16A34A';
+    if(e>=40)  return '#2563EB';
+    return '#94A3B8';
+  }
+  function effortLabel(e){
+    if(e>100) return 'Overload';
+    if(e>=80)  return 'Healthy';
+    if(e>=40)  return 'Normal';
+    if(e>0)    return 'Light';
+    return 'Free';
+  }
+  function effortLabelBg(e){
+    if(e>100) return {bg:'#FEE2E2',tx:'#991B1B'};
+    if(e>=80)  return {bg:'#DCFCE7',tx:'#166534'};
+    if(e>=40)  return {bg:'#DBEAFE',tx:'#1E3A8A'};
+    if(e>0)    return {bg:'#F1F5F9',tx:'#475569'};
+    return {bg:'#F8FAFC',tx:'#94A3B8'};
+  }
+
+  var rankHTML='<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);padding:16px 18px;">';
+  rankHTML+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">'
+    +'<div style="font-size:11px;font-weight:700;color:var(--t2);letter-spacing:.06em;text-transform:uppercase">Phân bổ effort</div>'
+    +'<div style="display:flex;gap:10px;">'
+    +'<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#DC2626"><span style="width:8px;height:8px;border-radius:2px;background:#DC2626"></span>Overload &gt;100%</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#16A34A"><span style="width:8px;height:8px;border-radius:2px;background:#16A34A"></span>Healthy 80-100%</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#2563EB"><span style="width:8px;height:8px;border-radius:2px;background:#2563EB"></span>Normal 40-79%</span>'
+    +'<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:#94A3B8"><span style="width:8px;height:8px;border-radius:2px;background:#94A3B8"></span>Light &lt;40%</span>'
+    +'</div></div>';
+
+  memberEfforts.forEach(function(m,idx){
+    var barW=maxEffort>0?Math.min((m.effort/maxEffort)*100,100):0;
+    var overW=m.effort>100?Math.min(((m.effort-100)/maxEffort)*100,barW):0;
+    var normalW=barW-overW;
+    var col=effortColor(m.effort);
+    var lbl=effortLabelBg(m.effort);
+
+    rankHTML+='<div style="display:grid;grid-template-columns:24px 100px 1fr 52px 60px 70px;align-items:center;gap:8px;padding:6px 0;'+(idx<memberEfforts.length-1?'border-bottom:1px solid var(--bdr);':'')+'}">'
+      // Rank number
+      +'<span style="font-size:11px;font-weight:700;color:var(--t3);font-family:var(--mono);text-align:right">'+(idx+1)+'</span>'
+      // Name + role
+      +'<div style="min-width:0;">'
+      +'<div style="font-size:12px;font-weight:600;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(m.name)+'</div>'
+      +'<div style="font-size:10px;color:var(--t3)">'+esc(m.role)+'</div>'
+      +'</div>'
+      // Bar
+      +'<div style="position:relative;height:10px;background:rgba(0,0,0,.06);border-radius:5px;overflow:visible;">'
+      // 100% marker
+      +(maxEffort>100?'<div style="position:absolute;top:-3px;bottom:-3px;width:1px;background:rgba(220,38,38,.3);left:'+(100/maxEffort*100)+'%;z-index:1"></div>':'')
+      // normal bar
+      +'<div style="position:absolute;left:0;top:0;height:100%;width:'+normalW+'%;background:'+col+';border-radius:5px;transition:width .4s"></div>'
+      // overload bar (đỏ nhạt hơn overlay)
+      +(overW>0?'<div style="position:absolute;left:'+normalW+'%;top:0;height:100%;width:'+overW+'%;background:#FCA5A5;border-radius:0 5px 5px 0;"></div>':'')
+      +'</div>'
+      // Effort %
+      +'<span style="font-size:12px;font-weight:700;color:'+col+';font-family:var(--mono);text-align:right">'+(m.effort>0?m.effort+'%':'—')+'</span>'
+      // Số dự án
+      +'<span style="font-size:11px;color:var(--t3);text-align:center">'+(m.projects>0?m.projects+' dự án':'—')+'</span>'
+      // Status label
+      +'<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+lbl.bg+';color:'+lbl.tx+';text-align:center;white-space:nowrap">'+effortLabel(m.effort)+'</span>'
+      +'</div>';
+  });
+  rankHTML+='</div>';
+
+  var resourceHTML='<div class="sec-h">Nguồn lực</div>'+rankHTML;
+
   body.innerHTML=''
     +'<div class="rh"><div><div class="rh-kick">FIS · '+esc(team)+'</div><div class="rh-title">Báo cáo tiến độ dự án</div><div class="rh-sub">Tổng hợp trạng thái & kế hoạch tuần tới</div></div>'
     +'<div class="rh-r"><div class="rh-wk">Tuần '+week+' · '+now.getFullYear()+'</div><div class="rh-by" style="font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:2px">'+wr.from+' – '+wr.to+'</div><div class="rh-by">Người lập: '+esc(rep)+'</div><div class="rh-by" style="margin-top:2px">'+ds+'</div></div>'
     +'</div>'
     +pieHTML
-    +'<div class="sec-h">Tiến độ theo dự án</div>'
-    +'<div class="cblock">'+(chartHTML||'<div class="empty-msg" style="padding:.75rem">Chưa có dữ liệu</div>')+'<div class="cleg">'+legHTML+'</div></div>'
     +(allActive.length?'<div class="sec-h">Chi tiết dự án</div>'+groupedListHTML:'')
     +(closed.length?'<div class="sec-h">Closed / Cancelled</div><div class="pend-list">'+closedHTML+'</div>':'')
+    +resourceHTML
     +'<div class="rfoot"><span>Báo cáo tuần '+week+' ('+wr.from+' – '+wr.to+') · FIS · '+esc(team)+'</span><span class="rfoot-r">Người lập: '+esc(rep)+'</span></div>';
 }
 
