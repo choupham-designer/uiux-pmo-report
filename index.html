@@ -604,10 +604,9 @@ function saveToFirebase(){
       setTimeout(saveToFirebase,500);
       return;
     }
-    // Sync data từ DOM vào object trước khi lưu
-    var cur=null;
-    for(var i=0;i<projects.length;i++){if(projects[i].id===selectedId){cur=projects[i];break;}}
-    if(cur) syncP(cur);
+    // Sync TẤT CẢ projects từ DOM vào object trước khi lưu
+    // (không chỉ selectedId — tránh mất data project đang nhập dở)
+    projects.forEach(function(p){ syncP(p); });
 
     showSync('Đang lưu...');
     _isSaving=true; // Đánh dấu đang save để onFbValue bỏ qua echo
