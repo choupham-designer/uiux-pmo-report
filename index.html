@@ -1203,8 +1203,10 @@ function doRender(){
 
   function sortByStatus(arr){
     return arr.slice().sort(function(a,b){
-      var oa=STATUS_ORDER[a.projectStatus||'open']||99;
-      var ob=STATUS_ORDER[b.projectStatus||'open']||99;
+      var sa=a.projectStatus||'open';
+      var sb=b.projectStatus||'open';
+      var oa=STATUS_ORDER[sa]!==undefined?STATUS_ORDER[sa]:99;
+      var ob=STATUS_ORDER[sb]!==undefined?STATUS_ORDER[sb]:99;
       return oa-ob;
     });
   }
