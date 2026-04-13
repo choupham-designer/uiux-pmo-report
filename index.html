@@ -307,12 +307,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 
 <div class="panel on" id="panel-report">
   <div class="rwrap">
-    <div id="rpt-filter-bar" style="display:none;position:sticky;top:56px;z-index:90;background:var(--bg);padding:10px 0 6px;border-bottom:1px solid var(--bdr);margin-bottom:16px;">
-      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">
-        <span style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-right:4px">Lọc PIC:</span>
-        <div id="pic-filter-chips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
-      </div>
-    </div>
     <div id="rpt-print">
       <div class="empty-msg" id="rpt-empty">Chưa có dữ liệu. Bấm "Lập báo cáo" để nhập thông tin.</div>
       <div id="rpt-body" style="display:none"></div>
@@ -1002,16 +996,15 @@ function renderForm(){
 // Chuyển text nhiều dòng → bullet list HTML cho báo cáo
 // ── PIC FILTER BAR ─────────────────────────────
 function buildPicFilterBar(){
-  var bar=document.getElementById('rpt-filter-bar');
-  var chipsEl=document.getElementById('pic-filter-chips');
-  if(!bar||!chipsEl) return;
+  // Chỉ hiện các PIC có dự án
   var pics=['__all__'];
   PIC_LIST.forEach(function(m){
     if(projects.some(function(p){return p.pic===m.name;})) pics.push(m.name);
   });
-  if(pics.length<=2){bar.style.display='none';return;}
-  bar.style.display='';
-  var html='';
+  if(pics.length<=2) return ''; // ít hơn 2 PIC thì ẩn
+
+  var filterId='pfc-'+Date.now();
+  var html='<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:12px 0 4px;">';
   pics.forEach(function(name){
     var lbl=name==='__all__'?'Tất cả':name;
     var cnt=name==='__all__'?projects.length:projects.filter(function(p){return p.pic===name;}).length;
@@ -1019,14 +1012,20 @@ function buildPicFilterBar(){
     html+='<button class="pic-fc'+(isOn?' on':'')+'" data-pic="'+name+'">'
       +esc(lbl)+' <span style="opacity:.65">'+cnt+'</span></button>';
   });
-  chipsEl.innerHTML=html;
-  chipsEl.onclick=function(e){
-    var btn=e.target.closest('.pic-fc');
-    if(!btn) return;
-    var pic=btn.dataset.pic;
-    _picFilter=pic==='__all__'?null:pic;
-    doRender();
-  };
+  html+='</div>';
+
+  // Script để handle click — inject sau render
+  var js='(function(){'
+    +'var wrap=document.getElementById("'+filterId+'");'
+    +'if(wrap) wrap.addEventListener("click",function(e){'
+    +'var btn=e.target.closest(".pic-fc");'
+    +'if(!btn) return;'
+    +'_picFilter=btn.dataset.pic==="__all__"?null:btn.dataset.pic;'
+    +'doRender();'
+    +'});'
+    +'})();';
+
+  return {html:'<div id="'+filterId+'">'+html+'</div>', js:js};
 }
 
 function toBullets(text){
@@ -1056,8 +1055,10 @@ function doRender(){
   var rep=gv('m-reporter')||'ChauPV';
   var team=gv('m-team')||'UIUX PMO';
 
-  // Build filter bar (dùng toàn bộ projects để hiện đúng count)
-  buildPicFilterBar();
+  // Build filter bar HTML inline
+  var filterResult=buildPicFilterBar();
+  var filterHTML=filterResult?filterResult.html:'';
+  var filterJS=filterResult?filterResult.js:'';
 
   // Áp dụng filter PIC nếu có
   var viewProjects=_picFilter
@@ -1520,13 +1521,15 @@ function doRender(){
     +'</div>'
     +'</div>'
     +'</div>'
+    +filterHTML
     +pieHTML
     +(progressArr.length?'<div class="sec-h">Tiến độ dự án</div>'+progressHTML:'')
     +(projects.length?'<div class="sec-h">Chi tiết dự án</div>'+detailHTML:'')
     +resourceHTML
     +'<div class="rfoot"><span>Báo cáo tiến độ team UIUX · Tuần '+week+' ('+wr.from+' – '+wr.to+')</span><span class="rfoot-r">'+esc(rep)+' · '+ds+'</span></div>';
 
-  // Inject segment interaction script
+  // Inject scripts
+  if(filterJS){var sfc=document.createElement('script');sfc.textContent=filterJS;document.body.appendChild(sfc);}
   var sc=document.createElement('script'); sc.textContent=segJS; document.body.appendChild(sc);
 }
 
