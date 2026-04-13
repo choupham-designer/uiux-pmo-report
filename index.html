@@ -170,6 +170,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .seg-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:20px;border:1.5px solid var(--bdrm);background:#fff;font-family:var(--font);font-size:12px;font-weight:600;color:var(--t2);cursor:pointer;transition:all .15s}
 .seg-btn:hover{border-color:var(--t1);color:var(--t1)}
 .seg-on{background:#000!important;color:#fff!important;border-color:#000!important}
+.pic-fc{display:inline-flex;align-items:center;gap:4px;padding:4px 11px;border-radius:20px;border:1.5px solid var(--bdrm);background:#fff;font-family:var(--font);font-size:11px;font-weight:600;color:var(--t2);cursor:pointer;transition:all .15s}
+.pic-fc:hover{border-color:var(--t1);color:var(--t1)}
+.pic-fc.on{background:#000!important;color:#fff!important;border-color:#000!important}
 .sub-hint{font-size:12px;color:var(--t3);text-align:center;margin-top:6px;min-height:18px}
 .pad{height:2rem}
 .rwrap{max-width:800px;margin:0 auto;padding:2rem 1.5rem 5rem}
@@ -304,6 +307,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 
 <div class="panel on" id="panel-report">
   <div class="rwrap">
+    <div id="rpt-filter-bar" style="display:none;position:sticky;top:56px;z-index:90;background:var(--bg);padding:10px 0 6px;border-bottom:1px solid var(--bdr);margin-bottom:16px;">
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;">
+        <span style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-right:4px">Lọc PIC:</span>
+        <div id="pic-filter-chips" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+    </div>
     <div id="rpt-print">
       <div class="empty-msg" id="rpt-empty">Chưa có dữ liệu. Bấm "Lập báo cáo" để nhập thông tin.</div>
       <div id="rpt-body" style="display:none"></div>
@@ -400,6 +409,7 @@ function gv(id){ var el=document.getElementById(id); return el?el.value:''; }
 var projects=[], _pid=0, _rt=null, _saveTimer=null;
 var selectedId=null, currentUser=null;
 var _fbRef=null, _isSaving=false;
+var _picFilter=null; // null = tất cả, string = lọc theo PIC
 
 // ── AUTH ───────────────────────────────────────
 var AUTH_KEY = 'pmo_member_v2';
@@ -990,6 +1000,35 @@ function renderForm(){
 }
 
 // Chuyển text nhiều dòng → bullet list HTML cho báo cáo
+// ── PIC FILTER BAR ─────────────────────────────
+function buildPicFilterBar(){
+  var bar=document.getElementById('rpt-filter-bar');
+  var chipsEl=document.getElementById('pic-filter-chips');
+  if(!bar||!chipsEl) return;
+  var pics=['__all__'];
+  PIC_LIST.forEach(function(m){
+    if(projects.some(function(p){return p.pic===m.name;})) pics.push(m.name);
+  });
+  if(pics.length<=2){bar.style.display='none';return;}
+  bar.style.display='';
+  var html='';
+  pics.forEach(function(name){
+    var lbl=name==='__all__'?'Tất cả':name;
+    var cnt=name==='__all__'?projects.length:projects.filter(function(p){return p.pic===name;}).length;
+    var isOn=(_picFilter===null&&name==='__all__')||_picFilter===name;
+    html+='<button class="pic-fc'+(isOn?' on':'')+'" data-pic="'+name+'">'
+      +esc(lbl)+' <span style="opacity:.65">'+cnt+'</span></button>';
+  });
+  chipsEl.innerHTML=html;
+  chipsEl.onclick=function(e){
+    var btn=e.target.closest('.pic-fc');
+    if(!btn) return;
+    var pic=btn.dataset.pic;
+    _picFilter=pic==='__all__'?null:pic;
+    doRender();
+  };
+}
+
 function toBullets(text){
   if(!text||!text.trim()) return '';
   var lines=text.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
@@ -1017,24 +1056,32 @@ function doRender(){
   var rep=gv('m-reporter')||'ChauPV';
   var team=gv('m-team')||'UIUX PMO';
 
-  var pend=projects.filter(function(p){return p.projectStatus==='pending';});
-  var done=projects.filter(function(p){return p.projectStatus==='completed';});
-  var closed=projects.filter(function(p){return p.projectStatus==='closed'||p.projectStatus==='cancel';});
-  var cards=projects.filter(function(p){
+  // Build filter bar (dùng toàn bộ projects để hiện đúng count)
+  buildPicFilterBar();
+
+  // Áp dụng filter PIC nếu có
+  var viewProjects=_picFilter
+    ? projects.filter(function(p){return p.pic===_picFilter;})
+    : projects;
+
+  var pend=viewProjects.filter(function(p){return p.projectStatus==='pending';});
+  var done=viewProjects.filter(function(p){return p.projectStatus==='completed';});
+  var closed=viewProjects.filter(function(p){return p.projectStatus==='closed'||p.projectStatus==='cancel';});
+  var cards=viewProjects.filter(function(p){
     var s=p.projectStatus||'open';
     return s!=='pending'&&s!=='completed'&&s!=='closed'&&s!=='cancel';
   });
-  var total=projects.length;
+  var total=viewProjects.length;
 
   var emEl=document.getElementById('rpt-empty');
   var body=document.getElementById('rpt-body');
-  if(!total){emEl.style.display='';body.style.display='none';return;}
+  if(!projects.length){emEl.style.display='';body.style.display='none';return;}
   emEl.style.display='none'; body.style.display='';
   var ds=now.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
 
   // ── Pie Charts: Theo loại dự án + theo Project Status ──
   var typeCounts={};
-  projects.forEach(function(p){ var k=p.projectType||'__none__'; typeCounts[k]=(typeCounts[k]||0)+1; });
+  viewProjects.forEach(function(p){ var k=p.projectType||'__none__'; typeCounts[k]=(typeCounts[k]||0)+1; });
 
   function buildPie(items, title){
     var tot=0;
@@ -1117,7 +1164,7 @@ function doRender(){
   // Màu status dùng semantic colors đã có
   var statusItems=[];
   PROJECT_STATUSES.forEach(function(s){
-    var cnt=projects.filter(function(p){return (p.projectStatus||'open')===s.val;}).length;
+    var cnt=viewProjects.filter(function(p){return (p.projectStatus||'open')===s.val;}).length;
     statusItems.push({label:s.lbl, count:cnt, color:s.color});
   });
 
@@ -1235,7 +1282,7 @@ function doRender(){
   }
 
   function buildProjectList(filterType){
-    var filtered=projects.filter(function(p){
+    var filtered=viewProjects.filter(function(p){
       if(filterType && filterType!=='__all__') return (p.projectType||'__none__')===filterType;
       return true;
     });
@@ -1255,18 +1302,18 @@ function doRender(){
   // Tất cả types có ít nhất 1 dự án
   var typesWithProjects=[{val:'__all__', lbl:'Tất cả'}];
   projectTypes.forEach(function(t){
-    if(projects.some(function(p){return (p.projectType||'__none__')===t.val;})){
+    if(viewProjects.some(function(p){return (p.projectType||'__none__')===t.val;})){
       typesWithProjects.push(t);
     }
   });
-  if(projects.some(function(p){return !p.projectType;})){
+  if(viewProjects.some(function(p){return !p.projectType;})){
     typesWithProjects.push({val:'__none__', lbl:'Khác'});
   }
 
   var segmentId='seg-'+Date.now();
   var segHTML='<div id="'+segmentId+'" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
   typesWithProjects.forEach(function(t,i){
-    var cnt=t.val==='__all__'?projects.length:projects.filter(function(p){return (p.projectType||'__none__')===t.val;}).length;
+    var cnt=t.val==='__all__'?viewProjects.length:viewProjects.filter(function(p){return (p.projectType||'__none__')===t.val;}).length;
     var typeColor=t.val==='__all__'?'#000':(TYPE_PALETTE[t.val]||'#94A3B8');
     var isFirst=i===0;
     segHTML+='<button class="seg-btn'+(isFirst?' seg-on':'')+'" data-type="'+t.val+'"'
@@ -1299,7 +1346,7 @@ function doRender(){
   window._buildPList=buildProjectList;
 
   // ── Progress ranking section ──
-  var progressArr=projects.filter(function(p){
+  var progressArr=viewProjects.filter(function(p){
     var s=p.projectStatus||'open';
     return s!=='closed'&&s!=='cancel';
   }).slice().sort(function(a,b){return (b.progress||0)-(a.progress||0);});
