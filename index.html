@@ -1134,7 +1134,7 @@ function doRender(){
       html+='<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);overflow:hidden;">';
 
       // Group header
-      html+='<div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:'+typeColor+'12;border-bottom:2px solid '+typeColor+'30;">'
+      html+='<div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--bdr);border-left:3px solid '+typeColor+';"> '
         +'<span style="width:8px;height:8px;border-radius:2px;background:'+typeColor+'"></span>'
         +'<span style="font-size:12px;font-weight:700;color:'+typeColor+';letter-spacing:.04em;text-transform:uppercase">'+esc(typeLabel)+'</span>'
         +'<span style="font-size:13px;color:var(--t3);margin-left:auto">'+grpProjects.length+' dự án</span>'
@@ -1153,19 +1153,19 @@ function doRender(){
           memberNames=p.members.map(function(m){return esc(m.name);}).join(' · ');
         }
 
-        html+='<div style="padding:10px 14px;border-bottom:1px solid '+(isLast?'transparent':'var(--bdr)')+';">';
+        html+='<div style="padding:14px 16px;border-bottom:1px solid '+(isLast?'transparent':'var(--bdr)')+';">';
 
         // ── Dòng 1: Title (Process)  ·  [Status badge]  ──
         var titleLabel = p.name
           ? esc(p.name)+(dp?' <span style="font-size:13px;font-weight:400;color:var(--t3)">('+esc(dp.lbl)+')</span>':'')
           : '<em style="color:var(--t3);font-weight:400">Chưa đặt tên</em>';
-        html+='<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">'
+        html+='<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;">'
           +'<span style="font-size:14px;font-weight:700;flex:1;min-width:0;line-height:1.4">'+titleLabel+'</span>'
           +'<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+ps.bg+';color:'+ps.tx+';flex-shrink:0;white-space:nowrap;margin-top:1px">'+ps.lbl+'</span>'
           +'</div>';
 
         // ── Dòng 2: [Progress bar  xx%]  ·  PIC ──
-        html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(hasNote||p.lastWeek||p.nextWeek?'10':'0')+'px;">'
+        html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(hasNote||p.lastWeek||p.nextWeek?'12':'6')+'px;">'
           +'<div style="width:100px;height:5px;background:rgba(0,0,0,.07);border-radius:3px;overflow:hidden;flex-shrink:0;">'
           +'<div style="height:100%;width:'+pct+'%;background:'+ps.color+';border-radius:3px;"></div></div>'
           +'<span style="font-size:13px;font-weight:700;color:var(--t2);font-family:var(--mono);flex-shrink:0;min-width:30px">'+pct+'%</span>'
@@ -1174,7 +1174,7 @@ function doRender(){
 
         // ── Dòng 3: Risk (chỉ hiện khi có note) ──
         if(hasNote){
-          html+='<div style="font-size:13px;display:flex;align-items:flex-start;gap:5px;margin-bottom:'+(p.lastWeek||p.nextWeek?'10':'0')+'px;">'
+          html+='<div style="font-size:13px;display:flex;align-items:flex-start;gap:5px;margin-bottom:'+(p.lastWeek||p.nextWeek?'12':'0')+'px;">'
             +'<span style="flex-shrink:0">💬</span>'
             +'<span style="color:var(--t3);font-weight:600;flex-shrink:0">Risk:</span>'
             +'<span style="font-size:13px;color:#92400E;background:#FFFBEB;padding:2px 8px;border-radius:4px;border:1px solid #FDE68A;line-height:1.6;flex:1">'+esc(p.note)+'</span>'
@@ -1190,7 +1190,7 @@ function doRender(){
               +'<path d="M5 1v4M11 1v4"/>'
               +'</svg>';
           };
-          html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:10px;border-top:1px solid rgba(0,0,0,.07);">';
+          html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-top:12px;border-top:1px solid rgba(0,0,0,.07);">';
           html+='<div>'
             +'<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;">'+iconCal('#94A3B8')
             +'<span style="font-size:9px;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em">Tuần trước</span></div>'
