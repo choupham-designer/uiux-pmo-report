@@ -10,7 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
 firebase.initializeApp({
-  apiKey:"AIzaSyCXqQkbOvDBfb0a_AEr5tKwL8Z3gecczCQ",
+  apiKey:"AIzaSyB3g0IN8b-2-H094_-HMHr-bLnDpyNWoj4",
   authDomain:"uiux-pmo-report.firebaseapp.com",
   databaseURL:"https://uiux-pmo-report-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId:"uiux-pmo-report",
@@ -409,31 +409,40 @@ function signInGoogle(){
   var lbl=document.getElementById('google-btn-lbl');
   if(errEl) errEl.textContent='';
   if(btn) btn.disabled=true;
-  if(lbl) lbl.textContent='Đang chuyển hướng...';
+  if(lbl) lbl.textContent='Đang mở cửa sổ đăng nhập...';
   var provider=new firebase.auth.GoogleAuthProvider();
-  provider.setCustomParameters({prompt:'select_account'});
-  // Dùng redirect thay vì popup — hoạt động đúng trên GitHub Pages
-  auth.signInWithRedirect(provider).catch(function(err){
-    if(errEl) errEl.textContent='Lỗi: '+err.message;
-    if(btn) btn.disabled=false;
-    if(lbl) lbl.textContent='Đăng nhập với Google';
-  });
+  provider.addScope('email');
+  provider.addScope('profile');
+  auth.signInWithPopup(provider)
+    .then(function(result){
+      // onAuthStateChanged sẽ tự xử lý tiếp
+    })
+    .catch(function(err){
+      if(btn) btn.disabled=false;
+      if(lbl) lbl.textContent='Đăng nhập với Google';
+      // Nếu popup bị block → thử redirect
+      if(err.code==='auth/popup-blocked'||err.code==='auth/popup-closed-by-user'){
+        if(errEl) errEl.textContent='Popup bị block. Đang thử cách khác...';
+        setTimeout(function(){
+          auth.signInWithRedirect(provider);
+        },1000);
+      } else {
+        if(errEl) errEl.textContent='Lỗi: '+err.code+' — '+err.message;
+      }
+    });
 }
 function signOutGoogle(){
   clearMemberLocal(); currentUser=null; auth.signOut();
 }
 
 function initLogin(){
-  // Xử lý kết quả sau khi Google redirect về app
-  auth.getRedirectResult().then(function(result){
-    // result.user sẽ có giá trị nếu vừa redirect về từ Google
-    // onAuthStateChanged bên dưới sẽ tự xử lý tiếp
-  }).catch(function(err){
-    var errEl=document.getElementById('google-error');
-    if(errEl) errEl.textContent='Đăng nhập thất bại: '+err.message;
+  // Xử lý kết quả redirect (nếu dùng redirect flow)
+  auth.getRedirectResult().catch(function(err){
+    if(err&&err.code&&err.code!=='auth/no-auth-event'){
+      var errEl=document.getElementById('google-error');
+      if(errEl) errEl.textContent='Lỗi redirect: '+err.message;
+    }
   });
-
-  // Firebase Auth observer — chạy khi trạng thái auth thay đổi
   auth.onAuthStateChanged(function(user){
     if(!user){ showStep('google'); return; }
     var saved=loadMemberLocal();
