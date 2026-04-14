@@ -1004,7 +1004,7 @@ function buildPicFilterBar(){
   if(pics.length<=2) return ''; // ít hơn 2 PIC thì ẩn
 
   var filterId='pfc-'+Date.now();
-  var html='<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:12px 0 4px;">';
+  var html='<div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:24px 0;">';
   pics.forEach(function(name){
     var lbl=name==='__all__'?'Tất cả':name;
     var cnt=name==='__all__'?projects.length:projects.filter(function(p){return p.pic===name;}).length;
@@ -1504,7 +1504,7 @@ function doRender(){
 
   var resourceHTML='<div class="sec-h">Nguồn lực</div>'
     +'<div style="background:#fff;border:1px solid var(--bdr);border-radius:var(--rsm);padding:16px 18px;margin-bottom:12px;">'
-    +'<div style="font-size:11px;font-weight:700;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px">PIC phụ trách</div>'
+    +'<div style="font-size:11px;font-weight:700;color:var(--t2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px">PIC dự án</div>'
     +picCardHTML
     +'</div>'
     +rankHTML;
