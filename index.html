@@ -180,9 +180,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .pic-fc:hover{border-color:var(--t1);color:var(--t1)}
 .pic-fc.on{background:#000!important;color:#fff!important;border-color:#000!important}
 .sub-hint{font-size:12px;color:var(--t3);text-align:center;margin-top:6px;min-height:18px}
-.pad{height:2rem}
-.rwrap{max-width:800px;margin:0 auto;padding:2rem 1.5rem 5rem}
-#rpt-print{background:var(--bg);border-radius:var(--r);padding:24px 2rem 1.5rem}
+.pad{height:0}
+.rwrap{max-width:800px;margin:0 auto;padding:2rem 1.5rem 2rem}
+#rpt-print{background:var(--bg);border-radius:var(--r);padding:24px 2rem 0}
 .rh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0;padding-bottom:1.25rem;border-bottom:1px solid var(--bdr)}
 .rh-kick{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:5px}
 .rh-title{font-size:24px;font-weight:700;line-height:1.15}
@@ -236,7 +236,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .done-row{display:flex;gap:14px;align-items:flex-start;background:#fff;border-radius:var(--rsm);padding:10px 14px;border-left:3px solid var(--s-don-bar)}
 .pend-nm{font-size:13px;font-weight:700;flex:0 0 auto;min-width:100px;max-width:180px}
 .pend-nt{font-size:12px;color:var(--t2);line-height:1.55}
-.rfoot{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--bdr);font-size:13px;color:var(--t3)}
+.rfoot{display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:.75rem;padding-bottom:1rem;border-top:1px solid var(--bdr);font-size:13px;color:var(--t3)}
 .rfoot-r{font-family:var(--mono)}
 .empty-msg{text-align:center;padding:3rem 1rem;font-size:13px;color:var(--t3)}
 @media(max-width:600px){.topnav{padding:0 1rem}.bsep,.bsub{display:none}.btn:not(.btn-p){display:none}}
@@ -1552,7 +1552,6 @@ function doRender(){
     +'<div class="rh-r">'
     +'<div class="rh-wk">'+esc(rep)+'</div>'
     +'<div class="rh-by">'+ds+'</div>'
-    +'</div>'
     +'</div>'
     +'</div>'
     +filterHTML
