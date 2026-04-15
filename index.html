@@ -156,14 +156,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .chip.on .chip-nm{color:#fff}
 .chip.on .chip-rl{color:rgba(255,255,255,.7)}
 .crole{font-size:13px;color:var(--t3)}
-.effort-list{display:flex;flex-direction:column;gap:6px;padding-top:4px}
-.effort-row{display:flex;align-items:center;gap:10px}
-.effort-nm{font-size:12px;font-weight:600;color:var(--t1);min-width:110px}
+.effort-list{display:flex;flex-direction:column;gap:10px;padding-top:4px}
+.effort-row{display:flex;flex-direction:column;gap:6px;padding:10px 12px;background:var(--subtle);border-radius:var(--rxs)}
+.effort-row-top{display:flex;align-items:center;gap:10px}
+.effort-nm{font-size:12px;font-weight:600;color:var(--t1);flex:1}
 .effort-w{display:flex;align-items:center;gap:4px}
 .effort-w input{width:64px;font-family:var(--mono);font-size:13px;text-align:right;padding:5px 8px;border-radius:var(--rxs);border:1px solid var(--bdrm);background:#fff;color:var(--t1);outline:none}
 .effort-w input:focus{border-color:var(--acc);box-shadow:0 0 0 2px oklch(64.6% 0.222 41.116 / .15)}
 .effort-w input::-webkit-inner-spin-button,.effort-w input::-webkit-outer-spin-button{-webkit-appearance:none}
 .effort-u{font-size:12px;font-weight:600;color:var(--t2)}
+.effort-tasks{width:100%;font-family:var(--font);font-size:12px;padding:6px 8px;border-radius:var(--rxs);border:1px solid var(--bdrm);background:#fff;color:var(--t1);outline:none;resize:vertical;min-height:52px;line-height:1.5}
+.effort-tasks:focus{border-color:var(--acc)}
+.effort-tasks-hint{font-size:10px;color:var(--t3);margin-bottom:3px;font-style:italic}
 .sub-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border-radius:var(--rxs);border:none;background:var(--pri);color:#fff;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;margin-top:4px}
 .sub-btn:hover{opacity:.85}
 .bullet-hint{font-size:11px;color:var(--t3);margin-bottom:4px;font-style:italic}
@@ -696,6 +700,10 @@ function syncP(p){
     var m=null; for(var i=0;i<p.members.length;i++){if(p.members[i].name===el.dataset.member){m=p.members[i];break;}}
     if(m) m.pct=el.value;
   });
+  document.querySelectorAll('.effort-tasks[data-pid="'+p.id+'"]').forEach(function(el){
+    var m=null; for(var i=0;i<p.members.length;i++){if(p.members[i].name===el.dataset.member){m=p.members[i];break;}}
+    if(m) m.tasks=el.value;
+  });
 }
 function syncSelected(){
   var p=null; for(var i=0;i<projects.length;i++){if(projects[i].id===selectedId){p=projects[i];break;}}
@@ -844,12 +852,18 @@ function buildMemberHTML(p){
     for(var k=0;k<p.members.length;k++){
       var m=p.members[k];
       effort+='<div class="effort-row">'
+             +'<div class="effort-row-top">'
              +'<span class="effort-nm">'+esc(m.name)+'</span>'
              +'<div class="effort-w">'
              +'<input type="number" min="0" max="100" class="eff-pct"'
              +' data-pid="'+p.id+'" data-member="'+esc(m.name)+'"'
              +' value="'+esc(m.pct)+'" placeholder="0">'
-             +'<span class="effort-u">%</span></div></div>';
+             +'<span class="effort-u">%</span></div></div>'
+             +'<div class="effort-tasks-hint">Công việc đang làm (mỗi dòng = 1 bullet)</div>'
+             +'<textarea class="effort-tasks" rows="2"'
+             +' data-pid="'+p.id+'" data-member="'+esc(m.name)+'"'
+             +' placeholder="- Thiết kế màn A&#10;- Review với dev">'+esc(m.tasks||'')+'</textarea>'
+             +'</div>';
     }
     effort+='</div>';
   } else {
@@ -862,6 +876,14 @@ function bindPct(p){
     var mn=el.dataset.member;
     el.addEventListener('input',function(){
       for(var i=0;i<p.members.length;i++){if(p.members[i].name===mn){p.members[i].pct=el.value;break;}}
+      saveToFirebase();
+    });
+  });
+  // Bind tasks textarea
+  document.querySelectorAll('.effort-tasks[data-pid="'+p.id+'"]').forEach(function(el){
+    var mn=el.dataset.member;
+    el.addEventListener('input',function(){
+      for(var i=0;i<p.members.length;i++){if(p.members[i].name===mn){p.members[i].tasks=el.value;break;}}
       saveToFirebase();
     });
   });
@@ -1390,26 +1412,34 @@ function doRender(){
   // Tính tổng effort từng member qua tất cả dự án active
   var effortMap={}; // {name: totalEffort}
   var projectCountMap={}; // {name: số dự án}
+  var tasksMap={}; // {name: ['task1','task2',...]}
   ALL_MEMBERS.forEach(function(m){
     effortMap[m.name]=0;
     projectCountMap[m.name]=0;
+    tasksMap[m.name]=[];
   });
   projects.forEach(function(p){
     if(!p.members||!p.members.length) return;
     var s=p.projectStatus||'open';
-    // Chỉ tính effort từ dự án đang active: bỏ qua pending, closed, cancel
     if(s==='pending'||s==='closed'||s==='cancel') return;
     p.members.forEach(function(m){
       if(effortMap[m.name]===undefined) return;
       var pct=parseFloat(m.pct)||0;
       effortMap[m.name]+=pct;
       if(pct>0) projectCountMap[m.name]++;
+      // Thu thập tasks
+      if(m.tasks&&m.tasks.trim()){
+        m.tasks.split('\n').forEach(function(line){
+          var l=line.replace(/^[-•·]\s*/,'').trim();
+          if(l) tasksMap[m.name].push(l);
+        });
+      }
     });
   });
 
   // Tạo mảng sorted high → low
   var memberEfforts=ALL_MEMBERS.map(function(m){
-    return {name:m.name, role:m.role, effort:effortMap[m.name]||0, projects:projectCountMap[m.name]||0};
+    return {name:m.name, role:m.role, effort:effortMap[m.name]||0, projects:projectCountMap[m.name]||0, tasks:tasksMap[m.name]||[]};
   }).sort(function(a,b){ return b.effort-a.effort; });
 
   var maxEffort=memberEfforts[0]?Math.max(memberEfforts[0].effort,100):100;
@@ -1453,7 +1483,10 @@ function doRender(){
     var col=effortColor(m.effort);
     var lbl=effortLabelBg(m.effort);
 
-    rankHTML+='<div style="display:grid;grid-template-columns:24px 100px 1fr 52px 60px 70px;align-items:center;gap:8px;padding:6px 0;'+(idx<memberEfforts.length-1?'border-bottom:1px solid var(--bdr);':'')+'}">'
+    var hasTasks=m.tasks&&m.tasks.length>0;
+    rankHTML+='<div style="padding:'+(idx>0?'8':'0')+'px 0 8px 0;'+(idx<memberEfforts.length-1?'border-bottom:1px solid var(--bdr);':'')+'}">'
+      // Row chính
+      +'<div style="display:grid;grid-template-columns:24px 100px 1fr 52px 60px 70px;align-items:center;gap:8px;'+(hasTasks?'margin-bottom:8px;':'')+'}">'
       // Rank number
       +'<span style="font-size:12px;font-weight:700;color:var(--t3);font-family:var(--mono);text-align:right">'+(idx+1)+'</span>'
       // Name + role
@@ -1463,11 +1496,8 @@ function doRender(){
       +'</div>'
       // Bar
       +'<div style="position:relative;height:10px;background:rgba(0,0,0,.06);border-radius:5px;overflow:visible;">'
-      // 100% marker
       +(maxEffort>100?'<div style="position:absolute;top:-3px;bottom:-3px;width:1px;background:rgba(220,38,38,.3);left:'+(100/maxEffort*100)+'%;z-index:1"></div>':'')
-      // normal bar
       +'<div style="position:absolute;left:0;top:0;height:100%;width:'+normalW+'%;background:'+col+';border-radius:5px;transition:width .4s"></div>'
-      // overload bar (đỏ nhạt hơn overlay)
       +(overW>0?'<div style="position:absolute;left:'+normalW+'%;top:0;height:100%;width:'+overW+'%;background:#FCA5A5;border-radius:0 5px 5px 0;"></div>':'')
       +'</div>'
       // Effort %
