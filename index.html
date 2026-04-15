@@ -991,8 +991,9 @@ function renderForm(){
     +'<div class="bullet-hint">Mỗi dòng = 1 bullet trong báo cáo</div>'
     +'<textarea id="pnx-'+p.id+'" rows="4" placeholder="- Thiết kế màn B&#10;- Demo nội bộ&#10;- Chuẩn bị handoff">'+esc(p.nextWeek)+'</textarea></div>'
     +'</div>'
-    +'<div class="fld"><label>Ghi chú / Risk / Issue</label>'
-    +'<textarea id="pno-'+p.id+'" rows="2" placeholder="Ghi chú, risk, issue...">'+esc(p.note)+'</textarea></div>'
+    +'<div class="fld"><label>Risk / Issue</label>'
+    +'<div class="bullet-hint">Mỗi dòng = 1 bullet trong báo cáo</div>'
+    +'<textarea id="pno-'+p.id+'" rows="3" placeholder="- Chờ feedback từ KH&#10;- Thiếu resource tuần tới">'+esc(p.note)+'</textarea></div>'
     +'</div>'
     +'<div class="fcard"><div class="fcard-t">Nguồn lực</div>'
     +'<div id="mem-area-'+p.id+'">'+buildMemberHTML(p)+'</div></div>'
@@ -1056,16 +1057,15 @@ function toBullets(text){
   var lines=text.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>0;});
   if(!lines.length) return '';
   if(lines.length===1){
-    // 1 dòng → hiện thẳng, không cần bullet
-    return '<span style="font-size:13px;color:var(--t2);line-height:1.5">'+esc(lines[0])+'</span>';
+    var clean=lines[0].replace(/^[-•·]\s*/,'');
+    return '<span style="font-size:13px;line-height:1.5">'+esc(clean)+'</span>';
   }
-  var html='<ul style="margin:0;padding-left:14px;font-size:13px;color:var(--t2);line-height:1.6;list-style:none">';
+  var html='<ul style="margin:0;padding:0;font-size:13px;line-height:1.6;list-style:none">';
   lines.forEach(function(l){
-    // Bỏ dấu "-" hoặc "•" đầu dòng nếu user đã gõ sẵn
     var clean=l.replace(/^[-•·]\s*/,'');
-    html+='<li style="position:relative;padding-left:10px">'
-      +'<span style="position:absolute;left:0;color:var(--t3)">•</span>'
-      +esc(clean)+'</li>';
+    html+='<li style="display:flex;align-items:flex-start;gap:5px;padding:1px 0">'
+      +'<span style="flex-shrink:0;opacity:.6;margin-top:1px">•</span>'
+      +'<span>'+esc(clean)+'</span></li>';
   });
   return html+'</ul>';
 }
@@ -1262,10 +1262,12 @@ function doRender(){
 
     // Dòng 3: Risk
     if(hasNote){
-      html+='<div style="font-size:13px;display:flex;align-items:flex-start;gap:5px;margin-bottom:'+(p.lastWeek||p.nextWeek?'12':'0')+'px;">'
-        +'<span style="flex-shrink:0">💬</span>'
-        +'<span style="color:var(--t3);font-weight:600;flex-shrink:0">Risk:</span>'
-        +'<span style="font-size:13px;color:#92400E;background:#FFFBEB;padding:2px 8px;border-radius:4px;border:1px solid #FDE68A;line-height:1.6;flex:1">'+esc(p.note)+'</span>'
+      html+='<div style="display:flex;align-items:flex-start;gap:5px;margin-bottom:'+(p.lastWeek||p.nextWeek?'12':'0')+'px;">'
+        +'<span style="flex-shrink:0;font-size:13px;margin-top:2px">💬</span>'
+        +'<span style="color:var(--t3);font-weight:600;flex-shrink:0;font-size:13px;margin-top:2px">Risk:</span>'
+        +'<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:4px;padding:4px 10px;flex:1;color:#92400E">'
+        +toBullets(p.note)
+        +'</div>'
         +'</div>';
     }
 
