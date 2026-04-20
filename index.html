@@ -1280,7 +1280,8 @@ function doRender(){
 
   // Build filter bar HTML inline
   var filterResult=buildPicFilterBar();
-  var filterHTML=filterResult?filterResult.html:'';
+  // Luôn giữ 24px gap sau header dù bộ lọc PIC có hiện hay không
+  var filterHTML=filterResult?filterResult.html:'<div style="height:24px"></div>';
   var filterJS=filterResult?filterResult.js:'';
 
   // Áp dụng filter PIC nếu có
