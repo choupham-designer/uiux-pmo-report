@@ -238,6 +238,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .pend-nt{font-size:12px;color:var(--t2);line-height:1.55}
 .rfoot{display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:.75rem;padding-bottom:1.5rem;border-top:1px solid var(--bdr);font-size:13px;color:var(--t3)}
 .rfoot-r{font-family:var(--mono)}
+#week-nav-next:disabled{opacity:.35;cursor:not-allowed}
 .empty-msg{text-align:center;padding:3rem 1rem;font-size:13px;color:var(--t3)}
 @media(max-width:600px){.topnav{padding:0 1rem}.bsep,.bsub{display:none}.btn:not(.btn-p){display:none}}
 @media(max-width:640px){.shell{flex-direction:column}.sidebar{width:100%;position:static;margin:0;border-radius:0;max-height:none}.sb-list{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden}.sb-item{flex-shrink:0;min-width:140px;max-width:180px}.sb-del{opacity:1}.pane{padding:1.25rem;min-height:auto}.lgrid{grid-template-columns:repeat(2,1fr)}}
@@ -292,8 +293,19 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
     <aside class="sidebar">
       <div class="sb-meta">
         <input type="hidden" id="m-week">
+        <input type="hidden" id="m-year">
         <input type="hidden" id="m-reporter" value="ChauPV">
         <input type="hidden" id="m-team" value="UIUX PMO">
+        <!-- Week navigator -->
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <button onclick="goWeek(-1)" title="Tuần trước" style="flex-shrink:0;width:28px;height:28px;border:1px solid var(--bdr);border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t2)">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L4 6l4 4"/></svg>
+          </button>
+          <div id="week-nav-label" style="flex:1;text-align:center;line-height:1.3"></div>
+          <button id="week-nav-next" onclick="goWeek(1)" title="Tuần sau" style="flex-shrink:0;width:28px;height:28px;border:1px solid var(--bdr);border-radius:6px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t2)">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2l4 4-4 4"/></svg>
+          </button>
+        </div>
         <button class="btn btn-p" style="width:100%;justify-content:center;gap:7px" onclick="addProject()">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>
           Thêm dự án
@@ -510,6 +522,18 @@ function getISOWeek(d){
   var y=new Date(Date.UTC(t.getUTCFullYear(),0,1));
   return Math.ceil((((t-y)/86400000)+1)/7);
 }
+// Trả về năm ISO (có thể khác năm dương lịch ở biên năm)
+function getISOWeekYear(d){
+  var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  t.setUTCDate(t.getUTCDate()+4-(t.getUTCDay()||7));
+  return t.getUTCFullYear();
+}
+// Số tuần tối đa của một năm ISO
+function getMaxISOWeek(year){
+  var dec31=new Date(year,11,31);
+  var w=getISOWeek(dec31);
+  return w===1?getISOWeek(new Date(year,11,24)):w;
+}
 // Tính ngày đầu tuần (Thứ 2) và cuối tuần (Chủ nhật) theo ISO
 function getWeekRange(d){
   var day=d.getDay();
@@ -521,10 +545,58 @@ function getWeekRange(d){
   };
   return {from:fmt(mon), to:fmt(sun)};
 }
-function initWeek(){
-  document.getElementById('m-week').value=getISOWeek(new Date());
+// Tính getWeekRange từ week number + year
+function getWeekRangeFromKey(yr,wk){
+  // Tìm ngày thứ Hai của tuần ISO wk/yr
+  var jan4=new Date(yr,0,4); // Jan 4 luôn nằm trong tuần 1
+  var dayOfJan4=jan4.getDay()||7;
+  var mon=new Date(jan4);
+  mon.setDate(jan4.getDate()-(dayOfJan4-1)+(wk-1)*7);
+  return getWeekRange(mon);
 }
-function weekKey(){ return 'week_'+(gv('m-week')||getISOWeek(new Date())); }
+function initWeek(){
+  var now=new Date();
+  document.getElementById('m-week').value=getISOWeek(now);
+  document.getElementById('m-year').value=getISOWeekYear(now);
+  renderWeekNav();
+}
+// FIX: weekKey phải bao gồm NĂM để tránh data collision giữa các năm
+function weekKey(){
+  var wk=gv('m-week')||getISOWeek(new Date());
+  var yr=gv('m-year')||getISOWeekYear(new Date());
+  return 'week_'+yr+'_'+wk;
+}
+// Điều hướng tuần: delta = -1 (tuần trước) hoặc +1 (tuần sau)
+function goWeek(delta){
+  syncSelected();
+  var wk=parseInt(gv('m-week')||getISOWeek(new Date()));
+  var yr=parseInt(gv('m-year')||getISOWeekYear(new Date()));
+  wk+=delta;
+  if(wk<1){ yr--; wk=getMaxISOWeek(yr); }
+  else if(wk>getMaxISOWeek(yr)){ yr++; wk=1; }
+  document.getElementById('m-week').value=wk;
+  document.getElementById('m-year').value=yr;
+  projects=[]; selectedId=null; _loadedWeekKey='';
+  renderWeekNav();
+  loadFromFirebase();
+}
+function isCurrentWeek(){
+  var now=new Date();
+  return parseInt(gv('m-week'))===getISOWeek(now)&&parseInt(gv('m-year'))===getISOWeekYear(now);
+}
+function renderWeekNav(){
+  var el=document.getElementById('week-nav-label');
+  if(!el) return;
+  var wk=parseInt(gv('m-week')||getISOWeek(new Date()));
+  var yr=parseInt(gv('m-year')||getISOWeekYear(new Date()));
+  var range=getWeekRangeFromKey(yr,wk);
+  var isCur=isCurrentWeek();
+  el.innerHTML='<span style="font-size:11px;font-weight:700;color:var(--t2)">Tuần '+wk+' / '+yr+'</span>'
+    +'<span style="font-size:10px;color:var(--t3);display:block;margin-top:1px">'+range.from+' – '+range.to+'</span>'
+    +(isCur?'':'<span style="font-size:10px;font-weight:700;color:#D97706;background:#FEF3C7;padding:1px 6px;border-radius:8px;display:inline-block;margin-top:2px">Tuần cũ — chỉ xem</span>');
+  var nextBtn=document.getElementById('week-nav-next');
+  if(nextBtn) nextBtn.disabled=isCur;
+}
 
 // ── FIREBASE ───────────────────────────────────
 function normM(m){
@@ -537,6 +609,9 @@ function parseRemote(data){
   var arr=[];
   Object.keys(data).forEach(function(k){
     var v=data[k];
+    // Bỏ qua các key đặc biệt (metadata) và các value không phải object project
+    if(!v||typeof v!=='object') return;
+    if(k.charAt(0)==='_') return; // key bắt đầu bằng _ là metadata nội bộ
     arr.push({name:v.name||'',
       projectStatus: v.projectStatus||'open',
       designProcess: v.designProcess||'',
@@ -624,7 +699,7 @@ function onFbValue(snap){
   renderSidebar(); doRender();
 }
 
-// BUG FIX: saveToFirebase - dùng cờ _isSaving để tránh echo từ onFbValue
+// FIXED: saveToFirebase - guards against week mismatch and accidental empty-overwrite
 function saveToFirebase(){
   clearTimeout(_saveTimer);
   _saveTimer=setTimeout(function(){
@@ -632,12 +707,17 @@ function saveToFirebase(){
       setTimeout(saveToFirebase,500);
       return;
     }
-    // Sync TẤT CẢ projects từ DOM vào object trước khi lưu
-    // (không chỉ selectedId — tránh mất data project đang nhập dở)
-    projects.forEach(function(p){ syncP(p); });
 
-    showSync('Đang lưu...');
-    _isSaving=true; // Đánh dấu đang save để onFbValue bỏ qua echo
+    // GUARD 1: Không save nếu weekKey không khớp với data đang load
+    // (xảy ra khi tab mở qua đêm → tuần thay đổi)
+    if(_loadedWeekKey && weekKey()!==_loadedWeekKey){
+      console.warn('[PMO] saveToFirebase: weekKey mismatch (loaded='+_loadedWeekKey+', current='+weekKey()+') — bỏ qua để tránh ghi nhầm tuần');
+      showSync('⚠ Tuần đã đổi — tải lại trang',4000);
+      return;
+    }
+
+    // Sync TẤT CẢ projects từ DOM vào object trước khi lưu
+    projects.forEach(function(p){ syncP(p); });
 
     var data={};
     projects.forEach(function(p,i){
@@ -653,10 +733,20 @@ function saveToFirebase(){
         updatedBy:currentUser||'',updatedAt:Date.now(),_order:i};
     });
 
+    // GUARD 2: Không save object rỗng lên Firebase
+    // (xảy ra khi xóa project cuối — tránh xóa trắng data cả tuần)
+    if(Object.keys(data).length===0){
+      console.warn('[PMO] saveToFirebase: projects rỗng — bỏ qua để tránh xóa data');
+      hideSync();
+      return;
+    }
+
+    showSync('Đang lưu...');
+    _isSaving=true;
+
     _fbRef.set(data)
       .then(function(){
         showSync('Đã lưu ✓',1500);
-        // Tắt cờ sau 1 giây để tránh bỏ qua update thật sự của người khác
         setTimeout(function(){_isSaving=false;},1000);
       })
       .catch(function(err){
@@ -1074,8 +1164,12 @@ function schedRender(){ clearTimeout(_rt); _rt=setTimeout(doRender,120); }
 
 function doRender(){
   var now=new Date();
-  var week=getISOWeek(now);
-  var wr=getWeekRange(now);
+  // Đọc từ m-week/m-year (có thể đang xem tuần cũ qua week navigator)
+  var week=parseInt(gv('m-week')||getISOWeek(now));
+  var yr=parseInt(gv('m-year')||getISOWeekYear(now));
+  var wr=(gv('m-week')&&gv('m-year'))
+    ? getWeekRangeFromKey(yr,week)
+    : getWeekRange(now);
   var rep=gv('m-reporter')||'ChauPV';
   var team=gv('m-team')||'UIUX PMO';
 
@@ -1582,7 +1676,7 @@ function _runExport(){
   html2canvas(document.getElementById('rpt-print'),{scale:2,useCORS:true,backgroundColor:'#ffffff',logging:false})
   .then(function(canvas){
     var a=document.createElement('a');
-    a.download='bao-cao-tuan-'+getISOWeek(new Date())+'.png';
+    a.download='bao-cao-tuan-'+(gv('m-year')||getISOWeekYear(new Date()))+'-w'+(gv('m-week')||getISOWeek(new Date()))+'.png';
     a.href=canvas.toDataURL('image/png'); a.click();
     document.getElementById('topnav').style.display='';
     btn.disabled=false;
@@ -1608,31 +1702,34 @@ function startAutoSave(){
   },30000);
 }
 
-// Lưu khi đóng tab / reload
-window.addEventListener('beforeunload',function(){
-  // Chỉ lưu nếu có data VÀ weekKey khớp với data đang load (tránh xóa data tuần cũ)
-  if(_fbRef && projects.length>0 && weekKey()===_loadedWeekKey){
-    syncSelected();
-    clearTimeout(_saveTimer);
-    var cur=null;
-    for(var i=0;i<projects.length;i++){if(projects[i].id===selectedId){cur=projects[i];break;}}
-    if(cur) syncP(cur);
-    var data={};
-    projects.forEach(function(p,i){
-      var key=p.fbKey||('p'+Date.now()+'_'+Math.random().toString(36).slice(2)); p.fbKey=key;
-      data[key]={name:p.name||'',
-        projectStatus:p.projectStatus||'open',
-        designProcess:p.designProcess||'',
-        projectType:p.projectType||'',
-        status:p.projectStatus||'open',
-        phase:p.phase||'1',
-        pic:p.pic||'',lastWeek:p.lastWeek||'',nextWeek:p.nextWeek||'',
-        note:p.note||'',progress:p.progress||0,members:p.members||[],
-        updatedBy:currentUser||'',updatedAt:Date.now(),_order:i};
-    });
-    _fbRef.set(data);
-  }
+// Helper: flush save synchronously (dùng cho beforeunload/visibilitychange)
+function _flushSave(){
+  if(!_fbRef||!projects.length||!_loadedWeekKey) return;
+  if(weekKey()!==_loadedWeekKey) return; // GUARD: không save nhầm tuần
+  syncSelected();
+  clearTimeout(_saveTimer);
+  var data={};
+  projects.forEach(function(p,i){
+    var key=p.fbKey||('p'+Date.now()+'_'+Math.random().toString(36).slice(2)); p.fbKey=key;
+    data[key]={name:p.name||'',projectStatus:p.projectStatus||'open',
+      designProcess:p.designProcess||'',projectType:p.projectType||'',
+      status:p.projectStatus||'open',phase:p.phase||'1',
+      pic:p.pic||'',lastWeek:p.lastWeek||'',nextWeek:p.nextWeek||'',
+      note:p.note||'',progress:p.progress||0,members:p.members||[],
+      updatedBy:currentUser||'',updatedAt:Date.now(),_order:i};
+  });
+  if(Object.keys(data).length===0) return; // GUARD: không xóa trắng data
+  _fbRef.set(data);
+}
+
+// Lưu khi tab bị ẩn (visibilitychange kích hoạt sớm hơn beforeunload,
+// cho Firebase nhiều thời gian hơn để hoàn thành request)
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='hidden') _flushSave();
 });
+
+// Lưu khi đóng tab / reload (fallback)
+window.addEventListener('beforeunload',function(){ _flushSave(); });
 
 document.addEventListener('DOMContentLoaded', initLogin);
 </script>
