@@ -1644,7 +1644,8 @@ function doRender(){
   // Tạo mảng sorted high → low
   var memberEfforts=ALL_MEMBERS.map(function(m){
     return {name:m.name, role:m.role, effort:effortMap[m.name]||0, projects:projectCountMap[m.name]||0, tasks:tasksMap[m.name]||[]};
-  }).sort(function(a,b){ return b.effort-a.effort; });
+  }).filter(function(m){ return m.effort>1; }) // ẩn người không phát sinh effort
+  .sort(function(a,b){ return b.effort-a.effort; });
 
   var maxEffort=memberEfforts[0]?Math.max(memberEfforts[0].effort,100):100;
 
