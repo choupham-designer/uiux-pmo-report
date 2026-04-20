@@ -239,6 +239,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .rfoot{display:flex;justify-content:space-between;align-items:center;margin-top:1rem;padding-top:.75rem;padding-bottom:1.5rem;border-top:1px solid var(--bdr);font-size:13px;color:var(--t3)}
 .rfoot-r{font-family:var(--mono)}
 #week-nav-next:disabled{opacity:.35;cursor:not-allowed}
+.copy-banner{margin-bottom:14px;border-radius:var(--r);background:#FFFBEB;border:1px solid #FDE68A;padding:12px 16px}
+.copy-banner-inner{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .empty-msg{text-align:center;padding:3rem 1rem;font-size:13px;color:var(--t3)}
 @media(max-width:600px){.topnav{padding:0 1rem}.bsep,.bsub{display:none}.btn:not(.btn-p){display:none}}
 @media(max-width:640px){.shell{flex-direction:column}.sidebar{width:100%;position:static;margin:0;border-radius:0;max-height:none}.sb-list{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden}.sb-item{flex-shrink:0;min-width:140px;max-width:180px}.sb-del{opacity:1}.pane{padding:1.25rem;min-height:auto}.lgrid{grid-template-columns:repeat(2,1fr)}}
@@ -314,6 +316,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
       <div class="sb-list" id="sb-list"><div class="sb-empty">Chưa có dự án.<br>Bấm "Thêm dự án" để bắt đầu.</div></div>
     </aside>
     <div class="pane" id="pane">
+      <div id="copy-banner" class="copy-banner" style="display:none"></div>
       <div class="pane-empty" id="pane-empty">
         <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="6" width="24" height="28" rx="3"/><path d="M14 14h12M14 20h12M14 26h8"/></svg>
         <div>Chọn dự án từ danh sách bên trái<br>hoặc thêm dự án mới để bắt đầu</div>
@@ -639,7 +642,6 @@ function loadFromFirebase(){
     projects=[]; _pid=0;
     remote.forEach(function(p){ var id=++_pid; var np={}; Object.assign(np,p,{id:id}); projects.push(np); });
     if(projects.length){
-      // Giữ selectedId nếu vẫn còn tồn tại, không thì chọn project đầu tiên
       var found=false;
       for(var i=0;i<projects.length;i++){ if(projects[i].id===selectedId){found=true;break;} }
       if(!found) selectedId=projects[0].id;
@@ -647,9 +649,112 @@ function loadFromFirebase(){
       selectedId=null;
     }
     renderSidebar(); renderForm(); doRender(); hideSync();
+    // Nếu tuần hiện tại rỗng → thử load tuần trước để hiện banner copy
+    if(!projects.length && isCurrentWeek()){
+      checkAndShowCopyBanner();
+    }
     // Bắt đầu lắng nghe realtime SAU KHI đã load xong
     _fbRef.on('value',onFbValue);
   }).catch(function(err){ showSync('Lỗi tải: '+err.message,4000); });
+}
+
+// ── COPY FROM PREVIOUS WEEK ────────────────────
+// Tính weekKey của N tuần trước (delta âm)
+function prevWeekKey(delta){
+  var wk=parseInt(gv('m-week')||getISOWeek(new Date()));
+  var yr=parseInt(gv('m-year')||getISOWeekYear(new Date()));
+  wk+=delta; // delta = -1
+  if(wk<1){ yr--; wk=getMaxISOWeek(yr); }
+  else if(wk>getMaxISOWeek(yr)){ yr++; wk=1; }
+  return 'week_'+yr+'_'+wk;
+}
+
+// Kiểm tra tuần trước có data không, nếu có thì hiện banner.
+// Ưu tiên: key mới (có năm) → key cũ của tuần trước → key cũ của tuần hiện tại
+function checkAndShowCopyBanner(){
+  var curWk=parseInt(gv('m-week')||getISOWeek(new Date()));
+  var curYr=parseInt(gv('m-year')||getISOWeekYear(new Date()));
+
+  // Tính tuần trước
+  var prevWk=curWk-1, prevYr=curYr;
+  if(prevWk<1){ prevYr--; prevWk=getMaxISOWeek(prevYr); }
+
+  // Danh sách các key cần thử (theo thứ tự ưu tiên)
+  var candidates=[
+    'week_'+prevYr+'_'+prevWk,   // key mới của tuần trước
+    'week_'+prevWk,              // key cũ của tuần trước (không có năm)
+    'week_'+curWk                // key cũ của tuần hiện tại (data bị lưu nhầm)
+  ];
+
+  // Thử từng key theo thứ tự
+  function tryNext(idx){
+    if(idx>=candidates.length) return;
+    db.ref('reports/'+candidates[idx]).once('value').then(function(snap){
+      var data=parseRemote(snap.val());
+      if(data.length){
+        var isLegacy=(idx>0); // key cũ không có năm
+        showCopyBanner(candidates[idx], data.length, isLegacy);
+      } else {
+        tryNext(idx+1);
+      }
+    });
+  }
+  tryNext(0);
+}
+
+function showCopyBanner(srcKey, count, isLegacy){
+  var banner=document.getElementById('copy-banner');
+  if(!banner) return;
+  var label=isLegacy
+    ? 'Tìm thấy <b>'+count+' dự án</b> từ tuần trước (data cũ). Sao chép sang tuần này?'
+    : 'Tuần này chưa có dữ liệu. Tìm thấy <b>'+count+' dự án</b> từ tuần trước.';
+  banner.innerHTML='<div class="copy-banner-inner">'
+    +'<div style="display:flex;align-items:center;gap:10px;flex:1;">'
+    +'<svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="#92400E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="11" height="13" rx="2"/><path d="M6 5V3.5A1.5 1.5 0 017.5 2h5A1.5 1.5 0 0114 3.5V5"/><path d="M6 10h5M6 13h3"/></svg>'
+    +'<span style="font-size:13px;color:#92400E">'+label+'</span>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;flex-shrink:0;">'
+    +'<button class="btn btn-p" style="font-size:12px;padding:6px 14px;" onclick="copyFromWeekKey(\''+srcKey+'\')">Sao chép dự án →</button>'
+    +'<button onclick="document.getElementById(\'copy-banner\').style.display=\'none\'" style="background:none;border:none;cursor:pointer;color:#92400E;font-size:18px;line-height:1;padding:2px 4px">×</button>'
+    +'</div>'
+    +'</div>';
+  banner.style.display='';
+}
+
+function copyFromWeekKey(srcKey){
+  showSync('Đang sao chép...');
+  db.ref('reports/'+srcKey).once('value').then(function(snap){
+    var prev=parseRemote(snap.val());
+    if(!prev.length){ hideSync(); return; }
+
+    projects=[]; _pid=0;
+    prev.forEach(function(p){
+      var id=++_pid;
+      projects.push({
+        id:id,
+        name:p.name||'',
+        projectStatus: p.projectStatus==='completed'||p.projectStatus==='closed'||p.projectStatus==='cancel'
+          ? p.projectStatus : (p.projectStatus||'open'),
+        designProcess:p.designProcess||'',
+        projectType:p.projectType||'',
+        phase:p.phase||'1',
+        pic:p.pic||'',
+        // nextWeek cũ → lastWeek mới (kế hoạch → đã làm)
+        lastWeek: p.nextWeek||'',
+        nextWeek: '',   // user tự fill tuần tới
+        note: '',       // reset risk/issue
+        progress:p.progress||0,
+        members:p.members||[],
+        fbKey: null     // tạo fbKey mới để không overwrite tuần cũ
+      });
+    });
+
+    selectedId=projects.length?projects[0].id:null;
+    document.getElementById('copy-banner').style.display='none';
+    renderSidebar(); renderForm(); doRender();
+    saveToFirebase();
+    showSync('Đã sao chép '+projects.length+' dự án ✓',2000);
+  }).catch(function(e){ showSync('Lỗi: '+e.message,3000); });
 }
 
 // BUG FIX: onFbValue không được xoá project của người đang nhập
