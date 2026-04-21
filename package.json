@@ -1,0 +1,23 @@
+{
+  "name": "uiux-pmo-report",
+  "version": "1.0.0",
+  "description": "UIUX PMO Weekly Report Application",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/choupham-designer/uiux-pmo-report.git"
+  },
+  "keywords": ["pmo", "report", "uiux"],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/choupham-designer/uiux-pmo-report/issues"
+  },
+  "homepage": "https://github.com/choupham-designer/uiux-pmo-report#readme",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
