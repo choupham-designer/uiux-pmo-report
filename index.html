@@ -663,6 +663,23 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
             </button>
           </div>
         </div>
+        <!-- Firebase Rules -->
+        <div class="settings-section" style="border-color:#FCD34D;background:#FFFBEB">
+          <div class="settings-section-title" style="color:#92400E">⚡ Firebase Security Rules</div>
+          <div style="font-size:12px;color:#78350F;line-height:1.6;margin-bottom:12px">
+            Nếu gặp lỗi <code style="background:#FEF3C7;padding:1px 5px;border-radius:4px">PERMISSION_DENIED</code>, cần thêm rules cho <code>/projects</code> và <code>/uxw</code> trong Firebase Console.
+          </div>
+          <pre style="background:#1a1a1a;color:#4ade80;font-size:11px;padding:12px;border-radius:8px;overflow-x:auto;line-height:1.6;font-family:var(--mono)">{"rules": {
+  "reports":  {".read":"auth!=null",".write":"auth!=null"},
+  "projects": {".read":"auth!=null",".write":"auth!=null"},
+  "uxw":      {".read":"auth!=null",".write":"auth!=null"}
+}}</pre>
+          <div style="margin-top:10px">
+            <a href="https://console.firebase.google.com/project/uiux-pmo-report/database/uiux-pmo-report-default-rtdb/rules" target="_blank" class="btn btn-p" style="border-radius:1584px;font-size:12px;text-decoration:none;display:inline-flex">
+              Mở Firebase Rules →
+            </a>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -965,7 +982,7 @@ function saveProject(){
     showSync('Đã lưu dự án ✓',2000);
   }).catch(function(err){
     btn.disabled=false; btn.textContent='Lưu dự án';
-    alert('Lỗi: '+err.message);
+    alert(fbErrMsg(err));
   });
 }
 
@@ -974,7 +991,7 @@ function deleteProject(id,name){
   db.ref('projects/'+id).remove().then(function(){
     renderPMList();
     showSync('Đã xoá dự án.',2000);
-  }).catch(function(err){alert('Lỗi: '+err.message);});
+  }).catch(function(err){alert(fbErrMsg(err));});
 }
 
 // Close modal on backdrop click
@@ -1114,11 +1131,28 @@ function saveUXWReport(){
     showSync('Đã lưu UXW ✓',2000);
   }).catch(function(err){
     if(btn){btn.disabled=false;btn.textContent='Lưu UXW';}
-    alert('Lỗi: '+err.message);
+    alert(fbErrMsg(err));
   });
 }
 // ── END UXW PANEL ─────────────────────────────────────────────────
 // ── END GLOBAL MANAGEMENT ───────────────────────────────────────
+
+// ── Firebase error handler ────────────────────────────────────────
+function fbErrMsg(err){
+  if(!err) return 'Lỗi không xác định';
+  var msg=err.message||String(err);
+  if(msg.indexOf('PERMISSION_DENIED')>-1||msg.indexOf('Permission denied')>-1){
+    return 'Không có quyền truy cập Firebase.\n\n'
+      +'Vui lòng vào Firebase Console → Realtime Database → Rules\n'
+      +'và thêm quyền cho /projects và /uxw:\n\n'
+      +'{\"rules\":{\"reports\":{\".'+'read\":\"auth != null\",\".write\":\"auth != null\"},'
+      +'\"projects\":{\".'+'read\":\"auth != null\",\".write\":\"auth != null\"},'
+      +'\"uxw\":{\".'+'read\":\"auth != null\",\".write\":\"auth != null\"}}}'
+      +'\n\nLink: https://console.firebase.google.com/project/uiux-pmo-report/database/uiux-pmo-report-default-rtdb/rules';
+  }
+  return 'Lỗi: '+msg;
+}
+// ── END Firebase error handler ────────────────────────────────────
 
 function initLogin(){
 
@@ -1322,7 +1356,7 @@ function loadFromFirebase(){
     }
     // Bắt đầu lắng nghe realtime SAU KHI đã load xong
     _fbRef.on('value',onFbValue);
-  }).catch(function(err){ showSync('Lỗi tải: '+err.message,4000); });
+  }).catch(function(err){ showSync(fbErrMsg(err).split('\n')[0],4000); });
 }
 
 // ── UXW ────────────────────────────────────────
@@ -1540,7 +1574,7 @@ function saveToFirebase(){
         setTimeout(function(){_isSaving=false;},1000);
       })
       .catch(function(err){
-        showSync('Lỗi lưu: '+err.message,4000);
+        showSync(fbErrMsg(err).split('\n')[0],4000);
         _isSaving=false;
       });
   },800);
@@ -1796,7 +1830,7 @@ function submitProject(pid){
     })
     .catch(function(err){
       if(btn) btn.disabled=false;
-      if(hint){hint.style.color='#DC2626';hint.textContent='Lỗi: '+err.message;}
+      if(hint){hint.style.color='#DC2626';hint.textContent=fbErrMsg(err).split('\n')[0];}
       _isSaving=false;
     });
 }
