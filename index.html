@@ -126,8 +126,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .save-bar-btn:disabled{opacity:.55;cursor:not-allowed}
 .panel{display:none}
 .panel.on{display:block}
-.shell{display:flex;align-items:flex-start;max-width:1100px;margin:0 auto;min-height:calc(100vh - 56px)}
-.sidebar{width:240px;flex-shrink:0;display:flex;flex-direction:column;background:#fff;border:1px solid var(--bdr);border-radius:12px;position:sticky;top:calc(56px + 1.5rem);max-height:calc(100vh - 56px - 3rem);overflow:hidden;margin:1.5rem 0 1.5rem 1.5rem;align-self:flex-start;box-shadow:var(--clay-shadow)}
+.shell{display:flex;align-items:flex-start;max-width:1100px;margin:0 auto;min-height:100vh}
+.sidebar{width:240px;flex-shrink:0;display:flex;flex-direction:column;background:#fff;border:1px solid var(--bdr);border-radius:12px;position:sticky;top:1.5rem;max-height:calc(100vh - 3rem);overflow:hidden;margin:1.5rem 0 1.5rem 1.5rem;align-self:flex-start;box-shadow:var(--clay-shadow)}
 .sb-meta{padding:16px 14px 12px;border-bottom:1px solid var(--bdr);display:flex;flex-direction:column;gap:8px}
 .sb-list{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:2px}
 .sb-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--rxs);cursor:pointer;transition:all .15s;border:1px solid transparent;min-height:44px}
@@ -142,7 +142,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .sb-item:hover .sb-del{opacity:1}
 .sb-del:hover{background:#FEE2E2;color:#DC2626}
 .sb-empty{padding:2rem 1rem;text-align:center;font-size:12px;color:var(--t3);line-height:1.6}
-.pane{flex:1;padding:2rem;display:flex;flex-direction:column;min-height:calc(100vh - 56px)}
+.pane{flex:1;padding:2rem;display:flex;flex-direction:column;min-height:100vh}
 .pane-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:var(--t3);font-size:13px;text-align:center}
 .pane-empty svg{opacity:.3}
 .fld{display:flex;flex-direction:column;gap:5px}
@@ -269,21 +269,101 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 
 /* ── LEFT NAV ─────────────────────────────── */
 .app-shell{display:flex;min-height:100vh}
-.leftnav{width:56px;flex-shrink:0;background:#fff;border-right:1px solid var(--bdr);display:flex;flex-direction:column;align-items:center;padding:12px 0;position:fixed;left:0;top:0;bottom:0;z-index:100;box-shadow:var(--clay-shadow)}
-.ln-logo{margin-bottom:16px}
-.ln-items{display:flex;flex-direction:column;gap:4px;flex:1;width:100%;padding:0 8px}
-.ln-bottom{display:flex;flex-direction:column;align-items:center;gap:8px;padding:0 8px;width:100%}
-.ln-item{width:40px;height:40px;border:none;background:transparent;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3);transition:all .15s;position:relative}
+
+/* ── Expanded left nav (default ≥1024px) ── */
+.leftnav{
+  width:220px;flex-shrink:0;
+  background:#fff;border-right:1px solid var(--bdr);
+  display:flex;flex-direction:column;
+  padding:16px 0;
+  position:fixed;left:0;top:0;bottom:0;
+  z-index:100;box-shadow:var(--clay-shadow);
+  transition:width .2s;
+  overflow:hidden;
+}
+.ln-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:0 16px;margin-bottom:20px;
+  white-space:nowrap;
+}
+.ln-brand-name{font-size:14px;font-weight:700;color:var(--t1);letter-spacing:-0.2px}
+.ln-items{display:flex;flex-direction:column;gap:2px;flex:1;padding:0 10px}
+.ln-bottom{display:flex;flex-direction:column;gap:2px;padding:0 10px;border-top:1px solid var(--bdr);margin-top:8px;padding-top:10px}
+
+/* Nav items — expanded: icon + label */
+.ln-item{
+  height:40px;width:100%;
+  border:none;background:transparent;border-radius:10px;
+  cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  padding:0 10px;
+  color:var(--t2);
+  font-family:var(--font);font-size:13px;font-weight:500;
+  transition:all .15s;
+  white-space:nowrap;overflow:hidden;
+  text-align:left;
+}
+.ln-item svg{flex-shrink:0}
 .ln-item:hover{background:var(--subtle);color:var(--t1)}
 .ln-item.active{background:var(--pri);color:#fff}
 .ln-item.active:hover{background:var(--prih)}
-.ln-week-sel select{writing-mode:vertical-lr;transform:rotate(180deg);font-size:11px;border:1.5px solid var(--bdr);border-radius:8px;padding:6px 4px;background:#fff;color:var(--t2);cursor:pointer;outline:none;font-family:var(--mono);max-height:100px}
-.main-content{flex:1;margin-left:56px;min-height:100vh;background:var(--bg)}
+
+/* Sub-action buttons in nav */
+.ln-sub-action{
+  height:34px;width:100%;
+  border:1.5px solid var(--bdr);background:#fff;
+  border-radius:1584px;
+  cursor:pointer;
+  display:flex;align-items:center;gap:8px;
+  padding:0 12px;margin:4px 0 6px;
+  color:var(--t1);
+  font-family:var(--font);font-size:12px;font-weight:600;
+  transition:all .2s;white-space:nowrap;overflow:hidden;
+  box-shadow:var(--clay-shadow);
+}
+.ln-sub-action:hover{transform:rotateZ(-2deg) translateY(-2px);box-shadow:rgb(0,0,0) -3px 3px}
+
+/* Divider */
+.ln-divider{height:1px;background:var(--bdr);margin:6px 10px}
+
+/* Week info block */
+.ln-week-block{
+  padding:8px 12px;margin:0 10px;
+  border:1.5px solid var(--bdr);border-radius:10px;
+  background:var(--subtle);cursor:pointer;
+  white-space:nowrap;overflow:hidden;
+}
+
+/* Tooltip only in collapsed mode */
+.ln-item::after{content:none}
+
+/* Main content offset */
+.main-content{flex:1;margin-left:220px;min-height:100vh;background:var(--bg)}
 .panel{display:none}.panel.on{display:block}
 
-/* Tooltip labels on nav items */
-.ln-item::after{content:attr(title);position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);background:#000;color:#fff;font-size:11px;font-weight:500;padding:4px 8px;border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s;font-family:var(--font)}
-.ln-item:hover::after{opacity:1}
+/* ── Collapsed mode < 1024px ── */
+@media(max-width:1023px){
+  .leftnav{width:56px;align-items:center;padding:12px 0}
+  .ln-logo{padding:0;justify-content:center;margin-bottom:16px}
+  .ln-brand-name{display:none}
+  .ln-items{padding:0 8px}
+  .ln-bottom{padding:0 8px;border-top:none;margin-top:0;padding-top:0}
+  .ln-item{width:40px;height:40px;padding:0;justify-content:center;font-size:0}
+  .ln-item svg{flex-shrink:0}
+  .ln-item::after{
+    content:attr(title);
+    position:absolute;left:calc(100% + 10px);top:50%;
+    transform:translateY(-50%);
+    background:#000;color:#fff;font-size:11px;font-weight:500;
+    padding:4px 8px;border-radius:6px;white-space:nowrap;
+    opacity:0;pointer-events:none;transition:opacity .15s;font-family:var(--font);
+  }
+  .ln-item:hover::after{opacity:1}
+  .ln-sub-action{display:none}
+  .ln-divider{margin:6px 8px}
+  .ln-week-block{display:none}
+  .main-content{margin-left:56px}
+}
 
 /* Quản lý dự án styles */
 .pm-card{background:#fff;border:1.5px solid var(--bdr);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--clay-shadow);transition:border-color .15s;margin-bottom:8px}
@@ -296,10 +376,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .pm-act-btn{width:30px;height:30px;border:1.5px solid var(--bdr);border-radius:8px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3);transition:all .15s}
 .pm-act-btn:hover{border-color:var(--t1);color:var(--t1)}
 .pm-act-btn.del:hover{border-color:#DC2626;color:#DC2626;background:#FEF2F2}
-
-/* Week selector in leftnav — vertical */
-.ln-week-sel{width:40px;display:flex;justify-content:center}
-.ln-week-sel select{width:28px;text-align:center;font-size:10px;padding:4px 2px;border-radius:8px;background:#fff;border:1.5px solid var(--bdr);color:var(--t2);outline:none;cursor:pointer;font-family:var(--mono);transform:none;writing-mode:horizontal-tb}
 
 /* fld-inp — shared input style for UXW panel */
 .fld-inp{font-family:var(--font);font-size:13px;padding:8px 11px;border-radius:8px;border:1.5px solid var(--bdr);background:#fff;color:var(--t1);outline:none;width:100%}
@@ -332,36 +408,75 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 
   <!-- Left Navigation -->
   <nav class="leftnav" id="leftnav">
+
+    <!-- Logo + Brand -->
     <div class="ln-logo">
-      <img id="ln-logo-img" style="width:32px;height:32px;border-radius:8px;object-fit:cover">
+      <div id="ln-logo-mark" style="width:32px;height:32px;border-radius:8px;background:#000;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0">U</div>
+      <span class="ln-brand-name">UIUX PMO</span>
     </div>
+
+    <!-- Hidden state inputs -->
+    <input type="hidden" id="m-year">
+    <input type="hidden" id="m-week">
+
     <div class="ln-items">
-      <!-- hidden state inputs, globally accessible -->
-      <input type="hidden" id="m-year">
-      <button class="ln-item active" id="ln-report" data-tab="report" onclick="switchTab('report')" title="Báo cáo">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="14" height="14" rx="3"/><path d="M5 7h8M5 10h6"/></svg>
+
+      <!-- Báo cáo -->
+      <button class="ln-item active" id="ln-report" onclick="switchTab('report')" title="Báo cáo">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="14" height="14" rx="3"/><path d="M5 7h8M5 10h6"/></svg>
+        Báo cáo
       </button>
-      <button class="ln-item" id="ln-input" data-tab="input" onclick="switchTab('input')" title="Lập báo cáo · UI/UX">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v12M3 9h12"/></svg>
+
+      <div class="ln-divider"></div>
+
+      <!-- Lập báo cáo UI/UX -->
+      <button class="ln-item" id="ln-input" onclick="switchTab('input')" title="Lập báo cáo · UI/UX">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="14" height="14" rx="2.5"/><path d="M6 9h6M9 6v6"/></svg>
+        Lập báo cáo · UI/UX
       </button>
-      <button class="ln-item" id="ln-uxw" data-tab="uxw" onclick="switchTab('uxw')" title="Lập báo cáo · UXW">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h12M3 9h8M3 13h10"/><circle cx="14" cy="13" r="2.5" fill="currentColor" stroke="none"/></svg>
+      <!-- CTA: Thêm mới báo cáo -->
+      <button class="ln-sub-action" id="ln-add-report" onclick="switchTab('input');setTimeout(addProject,100)" title="Thêm mới báo cáo">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>
+        Thêm mới báo cáo
       </button>
-      <button class="ln-item" id="ln-projects" data-tab="projects" onclick="switchTab('projects')" title="Quản lý dự án">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="6" height="6" rx="1.5"/><rect x="10" y="2" width="6" height="6" rx="1.5"/><rect x="2" y="10" width="6" height="6" rx="1.5"/><rect x="10" y="10" width="6" height="6" rx="1.5"/></svg>
+
+      <!-- Lập báo cáo UXW -->
+      <button class="ln-item" id="ln-uxw" onclick="switchTab('uxw')" title="Lập báo cáo · UXW">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h12M3 9h8M3 13h10"/><circle cx="14" cy="13" r="2.2" fill="currentColor" stroke="none"/></svg>
+        Lập báo cáo · UXW
       </button>
+
+      <div class="ln-divider"></div>
+
+      <!-- Quản lý dự án -->
+      <button class="ln-item" id="ln-projects" onclick="switchTab('projects')" title="Quản lý dự án">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="6" height="6" rx="1.5"/><rect x="10" y="2" width="6" height="6" rx="1.5"/><rect x="2" y="10" width="6" height="6" rx="1.5"/><rect x="10" y="10" width="6" height="6" rx="1.5"/></svg>
+        Quản lý dự án
+      </button>
+      <!-- CTA: Tạo dự án mới -->
+      <button class="ln-sub-action" id="ln-add-project" onclick="switchTab('projects');setTimeout(openProjectModal,100)" title="Tạo dự án mới">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>
+        Tạo dự án mới
+      </button>
+
     </div>
+
+    <!-- Bottom: week + user -->
     <div class="ln-bottom">
-      <div class="ln-week-sel" title="Tuần hiện tại">
-        <input type="hidden" id="m-week">
-        <div id="ln-week-display" style="width:40px;height:40px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1.5px solid var(--bdr);border-radius:10px;background:#fff;cursor:pointer;font-family:var(--mono);line-height:1.1" onclick="switchTab('input')" title="Tuần đang chọn">
-          <span id="ln-week-num" style="font-size:13px;font-weight:700;color:var(--t1)">—</span>
-          <span style="font-size:9px;color:var(--t3);letter-spacing:.5px">tuần</span>
-        </div>
+
+      <!-- Week block (expanded only) -->
+      <div class="ln-week-block" id="ln-week-block" onclick="switchTab('input')" title="Tuần đang chọn">
+        <div style="font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--t3);margin-bottom:2px">Tuần hiện tại</div>
+        <div id="ln-week-num" style="font-size:13px;font-weight:700;color:var(--t1);font-family:var(--mono)">—</div>
+        <div id="ln-week-range" style="font-size:11px;color:var(--t3);margin-top:1px">—</div>
       </div>
+
+      <!-- User/logout -->
       <button class="ln-item" id="ln-user" onclick="logoutUser()" title="Đăng xuất">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="3"/><path d="M3 15c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="6" r="3"/><path d="M3 15c0-3.314 2.686-6 6-6s6 2.686 6 6"/></svg>
+        <span id="ln-user-name" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">Đăng xuất</span>
       </button>
+
     </div>
   </nav>
 
@@ -925,12 +1040,11 @@ function afterLogin(){
   var shell=document.getElementById('app-shell');
   if(shell) shell.style.display='flex';
   document.getElementById('m-reporter').value='ChauPV';
-  // Set logo in leftnav — dùng text mark U
-  var logoImg=document.getElementById('ln-logo-img');
-  if(logoImg){
-    // Thay img bằng div text nếu không có src
-    logoImg.outerHTML='<div style="width:32px;height:32px;border-radius:8px;background:#000;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;font-family:var(--font)">U</div>';
-  }
+  // Hiển thị tên user trong nav
+  var fireUser=auth.currentUser;
+  var displayName=fireUser?(fireUser.displayName||fireUser.email||'ChauPV'):'ChauPV';
+  var userNameEl=document.getElementById('ln-user-name');
+  if(userNameEl) userNameEl.textContent=displayName;
   switchTab('report');
   initWeek();
   loadFromFirebase();
@@ -1021,9 +1135,11 @@ function renderWeekNav(){
       +'<span style="font-size:10px;color:var(--t3);display:block;margin-top:1px">'+range.from+' – '+range.to+'</span>'
       +(isCur?'':'<span style="font-size:10px;font-weight:700;color:#D97706;background:#FEF3C7;padding:1px 6px;border-radius:8px;display:inline-block;margin-top:2px">Tuần cũ — chỉ xem</span>');
   }
-  // Cập nhật hiển thị số tuần trên leftnav
+  // Cập nhật leftnav week block
   var lnNum=document.getElementById('ln-week-num');
-  if(lnNum) lnNum.textContent=wk||'—';
+  if(lnNum) lnNum.textContent='Tuần '+wk+', '+yr;
+  var lnRange=document.getElementById('ln-week-range');
+  if(lnRange) lnRange.textContent=range.from+' – '+range.to+(isCur?'':' ⚠️');
   var nextBtn=document.getElementById('week-nav-next');
   if(nextBtn) nextBtn.disabled=isCur;
 }
