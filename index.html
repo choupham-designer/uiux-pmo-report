@@ -99,7 +99,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .sync-bar{position:fixed;bottom:1rem;right:1rem;z-index:200;background:#000;color:#fff;font-size:12px;font-weight:500;padding:7px 16px;border-radius:1584px;display:none;align-items:center;gap:7px;font-family:var(--font);box-shadow:rgb(0,0,0) -3px 3px}
 .sync-dot{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-/* topnav removed — using leftnav */
 .brand{display:flex;align-items:center;gap:10px}
 .bmark{width:30px;height:30px;border-radius:10px;background:var(--pri);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;font-feature-settings:var(--ot-head)}
 .bname{font-size:13px;font-weight:600;letter-spacing:-0.1px}
@@ -262,7 +261,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .uxw-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#EDE9FE;color:#5B21B6}
 .empty-msg{text-align:center;padding:3rem 1rem;font-size:13px;color:var(--t3)}
 @media(max-width:600px){.topnav{padding:0 1rem}.bsep,.bsub{display:none}.btn:not(.btn-p){display:none}}
-@media(max-width:640px){.leftnav{width:48px}.main-content{margin-left:48px}.shell{flex-direction:column}.sidebar{width:100%;position:static;margin:0;border-radius:0;max-height:none}.sb-list{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden}.sb-item{flex-shrink:0;min-width:140px;max-width:180px}.sb-del{opacity:1}.pane{padding:1.25rem;min-height:auto}.lgrid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:640px){.shell{flex-direction:column}.sidebar{width:100%;position:static;margin:0;border-radius:0;max-height:none}.sb-list{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden}.sb-item{flex-shrink:0;min-width:140px;max-width:180px}.sb-del{opacity:1}.pane{padding:1.25rem;min-height:auto}.lgrid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:480px){.frow{grid-template-columns:1fr}.pgroup{flex-wrap:wrap}.pbtn{flex:0 0 calc(33.33% - 5px)}.pgrid{grid-template-columns:1fr}.rh{flex-direction:column;gap:8px}.rh-r{text-align:left}}
 @media(min-width:561px) and (max-width:800px){.pgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.rwrap{padding:1rem 1rem 0}#rpt-print{padding:1rem 1rem 0}}
@@ -302,6 +301,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
   transition:all .15s;
   white-space:nowrap;overflow:hidden;
   text-align:left;
+  position:relative;
 }
 .ln-item svg{flex-shrink:0}
 .ln-item:hover{background:var(--subtle);color:var(--t1)}
@@ -376,6 +376,34 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .pm-act-btn{width:30px;height:30px;border:1.5px solid var(--bdr);border-radius:8px;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--t3);transition:all .15s}
 .pm-act-btn:hover{border-color:var(--t1);color:var(--t1)}
 .pm-act-btn.del:hover{border-color:#DC2626;color:#DC2626;background:#FEF2F2}
+
+/* ── LOADING STATE ───────────────────── */
+.sk{background:linear-gradient(90deg,var(--subtle) 25%,var(--bg) 50%,var(--subtle) 75%);background-size:200% 100%;animation:sk-shimmer 1.4s infinite;border-radius:6px}
+@keyframes sk-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── SETTINGS PANEL ──────────────────── */
+.settings-section{background:#fff;border:1.5px solid var(--bdr);border-radius:12px;padding:1.25rem 1.5rem;box-shadow:var(--clay-shadow);margin-bottom:1rem}
+.settings-section-title{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:12px;letter-spacing:-0.1px}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bdr)}
+.settings-row:last-child{border-bottom:none}
+.settings-label{font-size:13px;color:var(--t1)}
+.settings-hint{font-size:11px;color:var(--t3);margin-top:2px}
+.settings-badge{font-size:11px;padding:3px 10px;border-radius:1584px;background:var(--subtle);color:var(--t2);border:1px solid var(--bdr)}
+
+/* ── PRINT ───────────────────────────── */
+@media print{
+  .leftnav,.sync-bar,.exp-btn,.copy-banner,#login-screen,.save-bar-btn,
+  .panel:not(#panel-report),.rwrap>:not(#rpt-print){display:none!important}
+  #panel-report{display:block!important}
+  .main-content{margin-left:0!important}
+  #rpt-print{padding:12px!important;box-shadow:none!important}
+  .mc,.rcard,.cblock,.fcard,.pend-row,.done-row{box-shadow:none!important;break-inside:avoid}
+  body{background:#fff!important}
+}
+
+/* ── TRANSITIONS ─────────────────────── */
+.panel.on{animation:fadeIn .18s ease-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
 
 /* fld-inp — shared input style for UXW panel */
 .fld-inp{font-family:var(--font);font-size:13px;padding:8px 11px;border-radius:8px;border:1.5px solid var(--bdr);background:#fff;color:var(--t1);outline:none;width:100%}
@@ -457,6 +485,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
       <button class="ln-sub-action" id="ln-add-project" onclick="switchTab('projects');setTimeout(openProjectModal,100)" title="Tạo dự án mới">
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 2v8M2 6h8"/></svg>
         Tạo dự án mới
+      </button>
+
+      <div class="ln-divider"></div>
+
+      <!-- Thiết lập -->
+      <button class="ln-item" id="ln-settings" onclick="switchTab('settings')" title="Thiết lập">
+        <svg width="17" height="17" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="2.5"/><path d="M9 2v1.5M9 14.5V16M2 9h1.5M14.5 9H16M4.1 4.1l1.1 1.1M12.8 12.8l1.1 1.1M4.1 13.9l1.1-1.1M12.8 5.2l1.1-1.1"/></svg>
+        Thiết lập
       </button>
 
     </div>
@@ -559,8 +595,78 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
       </div>
     </div>
 
-    <!-- Panel: Quản lý dự án -->
-    <div class="panel" id="panel-projects">
+    <!-- Panel: Thiết lập -->
+    <div class="panel" id="panel-settings">
+      <div style="max-width:680px;margin:0 auto;padding:2rem 1.5rem">
+        <div style="margin-bottom:1.5rem">
+          <div style="font-size:20px;font-weight:600;letter-spacing:-0.4px;margin-bottom:4px">Thiết lập</div>
+          <div style="font-size:13px;color:var(--t3)">Cấu hình team và tùy chọn báo cáo</div>
+        </div>
+        <!-- Team info -->
+        <div class="settings-section">
+          <div class="settings-section-title">Thông tin team</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Tên team</div>
+              <div class="settings-hint">Hiển thị trên header báo cáo</div>
+            </div>
+            <span class="settings-badge">UIUX PMO</span>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Người lập báo cáo</div>
+              <div class="settings-hint">Account Google đăng nhập</div>
+            </div>
+            <span class="settings-badge" id="settings-reporter">—</span>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Firebase Project</div>
+              <div class="settings-hint">Realtime Database · asia-southeast1</div>
+            </div>
+            <span class="settings-badge">uiux-pmo-report</span>
+          </div>
+        </div>
+        <!-- Báo cáo -->
+        <div class="settings-section">
+          <div class="settings-section-title">Báo cáo</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Export PNG</div>
+              <div class="settings-hint">Ảnh 2x resolution, dùng html2canvas</div>
+            </div>
+            <span class="settings-badge">2× scale</span>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-label">Auto-save</div>
+              <div class="settings-hint">Tự lưu lên Firebase mỗi 30 giây và khi đóng tab</div>
+            </div>
+            <span class="settings-badge" style="background:#dcfce7;color:#166534;border-color:#86efac">Đang bật</span>
+          </div>
+        </div>
+        <!-- Phiên bản -->
+        <div class="settings-section">
+          <div class="settings-section-title">Thông tin ứng dụng</div>
+          <div class="settings-row">
+            <div><div class="settings-label">Phiên bản</div></div>
+            <span class="settings-badge">v2.0 · Clay Design</span>
+          </div>
+          <div class="settings-row">
+            <div><div class="settings-label">Stack</div></div>
+            <span class="settings-badge">HTML · Firebase · Roobert</span>
+          </div>
+          <div class="settings-row" style="border-bottom:none">
+            <div><div class="settings-label">Đăng xuất</div></div>
+            <button class="btn" onclick="logoutUser()" style="border-radius:1584px;font-size:12px;color:#DC2626;border-color:#FCA5A5">
+              Đăng xuất
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel: Quản lý dự án -->    <div class="panel" id="panel-projects">
       <div style="max-width:900px;margin:0 auto;padding:2rem 1.5rem">
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
@@ -587,7 +693,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 </button>
 
 <!-- Modal: Tạo/sửa dự án -->
-<div id="pm-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;padding:1rem">
+<div id="pm-modal" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.4);align-items:center;justify-content:center;padding:1rem">
   <div style="background:#fff;border-radius:16px;padding:2rem;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.15)">
     <div style="font-size:16px;font-weight:600;margin-bottom:1.5rem" id="pm-modal-title">Tạo dự án mới</div>
     <div class="fsec" style="gap:14px">
@@ -611,6 +717,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
+
 // ── CONSTANTS ──────────────────────────────────
 var MILESTONES = [0,25,50,75,100];
 var PHASES = [1,2,3];
@@ -753,14 +860,8 @@ function signOutGoogle(){
   clearMemberLocal(); currentUser=null; auth.signOut();
 }
 
-function initLogin(){
-  // Xử lý kết quả redirect (nếu dùng redirect flow)
-  auth.getRedirectResult().catch(function(err){
-    if(err&&err.code&&err.code!=='auth/no-auth-event'){
-      var errEl=document.getElementById('google-error');
-      if(errEl) errEl.textContent='Lỗi redirect: '+err.message;
-    }
-  });
+
+// ── GLOBAL: PROJECT & UXW MANAGEMENT ────────────────────────────
 // ── PROJECT MANAGEMENT (master data /projects) ──────────────────
 var masterProjects=[]; // cache từ Firebase /projects
 var _editingProjectId=null; // null = tạo mới, string = đang sửa
@@ -1017,22 +1118,34 @@ function saveUXWReport(){
   });
 }
 // ── END UXW PANEL ─────────────────────────────────────────────────
+// ── END GLOBAL MANAGEMENT ───────────────────────────────────────
 
-auth.onAuthStateChanged(function(user){
-  if(!user){ showStep('google'); return; }
-  var saved=loadMemberLocal();
-  if(!saved){ saveMemberLocal('ChauPV'); }
-  currentUser='ChauPV';
-  afterLogin();
-});
+function initLogin(){
+
+  // Xử lý kết quả redirect (nếu dùng redirect flow)
+  auth.getRedirectResult().catch(function(err){
+    if(err&&err.code&&err.code!=='auth/no-auth-event'){
+      var errEl=document.getElementById('google-error');
+      if(errEl) errEl.textContent='Lỗi redirect: '+err.message;
+    }
+  });
+  auth.onAuthStateChanged(function(user){
+    if(!user){ showStep('google'); return; }
+    var saved=loadMemberLocal();
+    if(!saved){ saveMemberLocal('ChauPV'); }
+    currentUser='ChauPV';
+    afterLogin();
+  });
+}
+
+
+function logoutUser(){
+  clearMemberLocal(); currentUser=null; auth.signOut();
+}
 
 function showStep(step){
   var g=document.getElementById('step-google');
   if(g) g.classList.toggle('on', step==='google');
-}
-
-function logoutUser(){
-  clearMemberLocal(); currentUser=null; auth.signOut();
 }
 
 function afterLogin(){
@@ -1048,6 +1161,7 @@ function afterLogin(){
   switchTab('report');
   initWeek();
   loadFromFirebase();
+  loadMasterProjects(); // preload master projects cache
   bindUxwForm();
   startAutoSave();
 }
@@ -1443,12 +1557,12 @@ function hideSync(){ document.getElementById('sync-bar').style.display='none'; }
 // ── TABS ───────────────────────────────────────
 function switchTab(t){
   // Panels
-  ['report','input','uxw','projects'].forEach(function(p){
+  ['report','input','uxw','projects','settings'].forEach(function(p){
     var el=document.getElementById('panel-'+p);
     if(el) el.classList.toggle('on',p===t);
   });
   // Nav active state
-  ['report','input','uxw','projects'].forEach(function(p){
+  ['report','input','uxw','projects','settings'].forEach(function(p){
     var btn=document.getElementById('ln-'+p);
     if(btn) btn.classList.toggle('active',p===t);
   });
@@ -1459,7 +1573,11 @@ function switchTab(t){
   if(t==='projects') renderPMList();
   // Load UXW panel if switching to it
   if(t==='uxw') renderUXWPanel();
-}
+  // Settings reporter name
+  if(t==='settings'){
+    var sr=document.getElementById('settings-reporter');
+    if(sr){var fu=auth.currentUser;sr.textContent=fu?(fu.displayName||fu.email||'—'):'—';}
+  }
   if(t==='report') doRender();
 }
 
@@ -1806,6 +1924,16 @@ function renderForm(){
   var p=null; for(var i=0;i<projects.length;i++){if(projects[i].id===selectedId){p=projects[i];break;}}
   if(!p){emEl.style.display='';form.style.display='none';return;}
   emEl.style.display='none'; form.style.display='';
+  // Đảm bảo masterProjects đã được load trước khi render form
+  if(!masterProjects.length && p.masterProjectId){
+    loadMasterProjects(function(){ _renderFormInner(p); });
+    return;
+  }
+  _renderFormInner(p);
+}
+function _renderFormInner(p){
+  var form=document.getElementById('pane-form');
+  if(!form) return;
   var msHTML='';
   for(var i=0;i<MILESTONES.length;i++){
     var v=MILESTONES[i];
@@ -1910,9 +2038,7 @@ function renderForm(){
   var selPT=document.getElementById('ppt-'+p.id);
   if(selPT) selPT.addEventListener('change',function(){p.projectType=selPT.value;updateSbItem(p);schedRender();saveToFirebase();});
   bindPct(p);
-}
-
-// Chuyển text nhiều dòng → bullet list HTML cho báo cáo
+} // end _renderFormInner
 // ── PIC FILTER BAR ─────────────────────────────
 function buildPicFilterBar(){
   // Chỉ hiện các PIC có dự án
