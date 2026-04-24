@@ -336,7 +336,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
     </aside>
     <div class="pane" id="pane">
       <div id="copy-banner" class="copy-banner" style="display:none"></div>
-      <div class="uxw-section" id="uxw-section">
+      <div class="pane-empty" id="pane-empty">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="6" width="24" height="28" rx="3"/><path d="M14 14h12M14 20h12M14 26h8"/></svg>
+        <div>Chọn dự án từ danh sách bên trái<br>hoặc thêm dự án mới để bắt đầu</div>
+      </div>
+      <div id="pane-form" style="display:none"></div>
+      <div class="uxw-section" id="uxw-section" style="display:none;margin-top:16px">
         <div class="fcard-t">
           <span>UXW Weekly</span>
           <span class="uxw-badge">AnhBTP7</span>
@@ -354,11 +359,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
           </div>
         </div>
       </div>
-      <div class="pane-empty" id="pane-empty">
-        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="8" y="6" width="24" height="28" rx="3"/><path d="M14 14h12M14 20h12M14 26h8"/></svg>
-        <div>Chọn dự án từ danh sách bên trái<br>hoặc thêm dự án mới để bắt đầu</div>
-      </div>
-      <div id="pane-form" style="display:none"></div>
     </div>
   </div>
 </div>
@@ -697,6 +697,7 @@ function loadFromFirebase(){
     }
     renderUxwForm();
     renderSidebar(); renderForm(); doRender(); hideSync();
+    updateUXWVisibility();
     // Nếu tuần hiện tại rỗng → thử load tuần trước để hiện banner copy
     if(!projects.length && isCurrentWeek()){
       checkAndShowCopyBanner();
@@ -1035,8 +1036,20 @@ function setPIC(pid,name){
   // Refresh member area để hiện effort mới
   var marea=document.getElementById('mem-area-'+pid);
   if(marea){marea.innerHTML=buildMemberHTML(p);bindPct(p);}
+  updateUXWVisibility();
   updateSbItem(p); schedRender(); saveToFirebase();
 }
+// Hiện/ẩn UXW section dựa trên việc AnhBTP7 có được chọn trong bất kỳ dự án nào không
+function updateUXWVisibility(){
+  var sec=document.getElementById('uxw-section');
+  if(!sec) return;
+  // Tìm xem có dự án nào có AnhBTP7 trong members không
+  var hasUXW=projects.some(function(p){
+    return p.members&&p.members.some(function(m){return m.name==='AnhBTP7';});
+  });
+  sec.style.display=hasUXW?'':'none';
+}
+
 function toggleMember(pid,name){
   var p=null; for(var i=0;i<projects.length;i++){if(projects[i].id===pid){p=projects[i];break;}}
   if(!p) return;
@@ -1047,6 +1060,7 @@ function toggleMember(pid,name){
   if(idx>-1) p.members.splice(idx,1); else p.members.push({name:name,pct:''});
   var area=document.getElementById('mem-area-'+pid);
   if(area){area.innerHTML=buildMemberHTML(p);bindPct(p);}
+  updateUXWVisibility();
   schedRender(); saveToFirebase();
 }
 
@@ -1219,15 +1233,19 @@ function renderForm(){
   var statusOpts=psOpts; // kept for legacy compat
 
   form.innerHTML=''
-    +'<div class="fsec">'
-    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;border-bottom:2px solid var(--bdrm);padding-bottom:6px;">'
-    +'<input id="pn-'+p.id+'" type="text" value="'+esc(p.name)+'" placeholder="Tên dự án..."'
-    +' style="font-size:18px;font-weight:700;border:none;outline:none;background:transparent;color:var(--t1);flex:1;font-family:var(--font);">'
-    +'<button class="save-bar-btn" id="save-bar-btn-'+p.id+'" onclick="submitProject('+p.id+')">'
-    +'<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M7 2l5 5-5 5"/></svg>'
-    +' Lưu</button>'
+    +'<div style="position:sticky;top:0;z-index:50;background:var(--bg);padding:12px 0 10px;margin-bottom:8px;display:flex;flex-direction:column;gap:6px;">'
+    // Vùng 1: Tên dự án
+    +'<div style="background:#fff;border:1.5px solid var(--bdr);border-radius:var(--rxs);padding:8px 14px;box-shadow:var(--clay-shadow);">'
+    +'<div style="font-size:10px;font-weight:600;letter-spacing:1.08px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-feature-settings:var(--ot-body)">Tên dự án</div>'
+    +'<input id="pn-'+p.id+'" type="text" value="'+esc(p.name)+'" placeholder="Nhập tên dự án..."'
+    +' style="font-size:16px;font-weight:700;border:none;outline:none;background:transparent;color:var(--t1);width:100%;font-family:var(--font);letter-spacing:-0.2px;">'
     +'</div>'
-    +'<div class="fcard"><div class="fcard-t">Thông tin chung</div>'
+    // Vùng 2: Button Lưu
+    +'<button class="save-bar-btn" id="save-bar-btn-'+p.id+'" onclick="submitProject('+p.id+')" style="align-self:flex-end;border-radius:1584px;padding:8px 20px;font-size:13px;">'
+    +'<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M7 2l5 5-5 5"/></svg>'
+    +' Lưu báo cáo</button>'
+    +'</div>'
+    +'<div class="fsec">'
     +'<div class="frow">'
     +'<div class="fld"><label>Loại dự án</label>'
     +'<select class="ssel" id="ppt-'+p.id+'">'+ptOpts+'</select></div>'
