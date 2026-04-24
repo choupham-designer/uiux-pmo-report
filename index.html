@@ -164,7 +164,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--t1);min-height:100
 .mbtn.on{background:var(--lemon);color:#000;font-weight:700;border-color:var(--lemon-dark)}
 .ssel{font-family:var(--font);font-size:13px;font-weight:500;padding:8px 11px;border-radius:8px;border:1.5px solid var(--bdr);outline:none;cursor:pointer;width:100%;background:#fff;color:var(--t1)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.chip{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 14px;border-radius:1584px;border:1.5px solid var(--bdrm);background:#fff;font-family:var(--font);cursor:pointer;transition:all .2s;min-width:72px;box-shadow:var(--clay-shadow)}
+.chip{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 14px;border-radius:1584px;border:1.5px solid var(--bdrm);background:#fff;font-family:var(--font);cursor:pointer;transition:all .2s;box-shadow:var(--clay-shadow)}
 .chip-nm{font-size:12px;font-weight:600;color:var(--t1);line-height:1.2}
 .chip-rl{font-size:10px;font-weight:400;color:var(--t3);line-height:1.2}
 .chip:hover{border-color:var(--accbd);background:var(--accbg);transform:translateY(-1px)}
@@ -1106,7 +1106,7 @@ function buildPicHTML(p){
   var html='';
   for(var i=0;i<PIC_LIST.length;i++){
     var tm=PIC_LIST[i]; var sel=p.pic===tm.name;
-    html+='<button type="button" class="chip'+(sel?' on':'')+'" onclick="setPIC('+p.id+',\''+tm.name+'\')">'
+    html+='<button type="button" class="chip'+(sel?' on':'')+'" onclick="setPIC('+p.id+',\''+tm.name+'\')" style="width:100%">'
         +'<span class="chip-nm">'+esc(tm.name)+'</span>'
         +'<span class="chip-rl">'+esc(tm.role)+'</span>'
         +'</button>';
@@ -1255,7 +1255,7 @@ function renderForm(){
     +'<div class="fld"><label>Design Process</label>'
     +'<select class="ssel" id="pdp-'+p.id+'">'+dpOpts+'</select></div>'
     +'<div class="fld"><label>PIC</label>'
-    +'<div class="chips" id="pic-area-'+p.id+'" style="margin-bottom:0">'+buildPicHTML(p)+'</div>'
+    +'<div id="pic-area-'+p.id+'" style="display:grid;grid-template-columns:repeat('+PIC_LIST.length+',1fr);gap:6px;margin-bottom:0">'+buildPicHTML(p)+'</div>'
     +'</div></div>'
     // Section 2: Phase
     +'<div class="fcard"><div class="fcard-t">Phase dự án</div>'
