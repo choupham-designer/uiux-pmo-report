@@ -1233,19 +1233,19 @@ function renderForm(){
   var statusOpts=psOpts; // kept for legacy compat
 
   form.innerHTML=''
-    +'<div style="position:sticky;top:0;z-index:50;background:var(--bg);padding:12px 0 10px;margin-bottom:8px;display:flex;flex-direction:column;gap:6px;">'
-    // Vùng 1: Tên dự án
-    +'<div style="background:#fff;border:1.5px solid var(--bdr);border-radius:var(--rxs);padding:8px 14px;box-shadow:var(--clay-shadow);">'
-    +'<div style="font-size:10px;font-weight:600;letter-spacing:1.08px;text-transform:uppercase;color:var(--t3);margin-bottom:4px;font-feature-settings:var(--ot-body)">Tên dự án</div>'
+    // ── Sticky header: name input + save button ngang hàng ──
+    +'<div style="position:sticky;top:0;z-index:50;background:var(--bg);padding:16px 0 12px;margin-bottom:8px;">'
+    +'<div style="display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--bdr);border-radius:12px;padding:10px 14px;box-shadow:var(--clay-shadow);">'
     +'<input id="pn-'+p.id+'" type="text" value="'+esc(p.name)+'" placeholder="Nhập tên dự án..."'
-    +' style="font-size:16px;font-weight:700;border:none;outline:none;background:transparent;color:var(--t1);width:100%;font-family:var(--font);letter-spacing:-0.2px;">'
-    +'</div>'
-    // Vùng 2: Button Lưu
-    +'<button class="save-bar-btn" id="save-bar-btn-'+p.id+'" onclick="submitProject('+p.id+')" style="align-self:flex-end;border-radius:1584px;padding:8px 20px;font-size:13px;">'
-    +'<svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M7 2l5 5-5 5"/></svg>'
-    +' Lưu báo cáo</button>'
-    +'</div>'
-    +'<div class="fsec">'
+    +' style="font-size:15px;font-weight:700;border:none;outline:none;background:transparent;color:var(--t1);flex:1;font-family:var(--font);letter-spacing:-0.2px;min-width:0;">'
+    +'<button class="save-bar-btn" id="save-bar-btn-'+p.id+'" onclick="submitProject('+p.id+')" style="border-radius:1584px;padding:8px 18px;font-size:12px;flex-shrink:0;">'
+    +'<svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7h10M7 2l5 5-5 5"/></svg>'
+    +' Lưu</button>'
+    +'</div></div>'
+    // ── Các section với gap đều 24px ──
+    +'<div class="fsec" style="gap:24px;">'
+    // Section 1: Thông tin chung (gộp: loại, status, process, PIC)
+    +'<div class="fcard"><div class="fcard-t">Thông tin chung</div>'
     +'<div class="frow">'
     +'<div class="fld"><label>Loại dự án</label>'
     +'<select class="ssel" id="ppt-'+p.id+'">'+ptOpts+'</select></div>'
@@ -1257,11 +1257,14 @@ function renderForm(){
     +'<div class="fld"><label>PIC</label>'
     +'<div class="chips" id="pic-area-'+p.id+'" style="margin-bottom:0">'+buildPicHTML(p)+'</div>'
     +'</div></div>'
+    // Section 2: Phase
     +'<div class="fcard"><div class="fcard-t">Phase dự án</div>'
     +'<div class="pgroup">'+phHTML+'</div>'
     +'<input type="hidden" id="pph-'+p.id+'" value="'+esc(p.phase||'1')+'"></div>'
+    // Section 3: Tiến độ
     +'<div class="fcard"><div class="fcard-t">Tiến độ</div>'
     +'<div class="milestones">'+msHTML+'</div></div>'
+    // Section 4: Nội dung tuần
     +'<div class="fcard"><div class="fcard-t">Nội dung tuần</div>'
     +'<div class="frow">'
     +'<div class="fld"><label>Tuần trước đã làm</label>'
@@ -1275,6 +1278,7 @@ function renderForm(){
     +'<div class="bullet-hint">Mỗi dòng = 1 bullet trong báo cáo</div>'
     +'<textarea id="pno-'+p.id+'" rows="3" placeholder="- Chờ feedback từ KH&#10;- Thiếu resource tuần tới">'+esc(p.note)+'</textarea></div>'
     +'</div>'
+    // Section 5: Nguồn lực
     +'<div class="fcard"><div class="fcard-t">Nguồn lực</div>'
     +'<div id="mem-area-'+p.id+'">'+buildMemberHTML(p)+'</div></div>'
     +'<div class="sub-hint" id="shint-'+p.id+'"></div>'
