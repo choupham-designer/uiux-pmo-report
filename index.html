@@ -1114,15 +1114,32 @@ function buildPicHTML(p){
   return html;
 }
 function buildMemberHTML(p){
-  var chips='';
-  for(var i=0;i<ALL_MEMBERS.length;i++){
-    var tm=ALL_MEMBERS[i];
-    var sel=false; for(var j=0;j<p.members.length;j++){if(p.members[j].name===tm.name){sel=true;break;}}
-    chips+='<button type="button" class="chip'+(sel?' on':'')+'" onclick="toggleMember('+p.id+',\''+tm.name+'\')">'
-          +'<span class="chip-nm">'+esc(tm.name)+'</span>'
-          +'<span class="chip-rl">'+esc(tm.role)+'</span>'
-          +'</button>';
-  }
+  // Định nghĩa 3 nhóm
+  var groups=[
+    {label:'Manager · Senior', roles:['Manager','UI Leader','Senior UX','Senior']},
+    {label:'Mid · Junior',     roles:['Mid','Junior']},
+    {label:'Graphic · UXW',    roles:['Graphic','UXW']}
+  ];
+
+  var chipSections='';
+  groups.forEach(function(grp){
+    var members=ALL_MEMBERS.filter(function(m){return grp.roles.indexOf(m.role)>-1;});
+    if(!members.length) return;
+    // Grid: tối đa 6 chip 1 dòng, chia đều
+    var cols=Math.min(members.length,6);
+    chipSections+='<div style="margin-bottom:10px;">'
+      +'<div style="font-size:10px;font-weight:600;letter-spacing:1.08px;text-transform:uppercase;color:var(--t3);margin-bottom:6px;font-feature-settings:var(--ot-body)">'+grp.label+'</div>'
+      +'<div style="display:grid;grid-template-columns:repeat('+cols+',1fr);gap:6px;">';
+    members.forEach(function(tm){
+      var sel=false; for(var j=0;j<p.members.length;j++){if(p.members[j].name===tm.name){sel=true;break;}}
+      chipSections+='<button type="button" class="chip'+(sel?' on':'')+'" onclick="toggleMember('+p.id+',\''+tm.name+'\')" style="width:100%">'
+        +'<span class="chip-nm">'+esc(tm.name)+'</span>'
+        +'<span class="chip-rl">'+esc(tm.role)+'</span>'
+        +'</button>';
+    });
+    chipSections+='</div></div>';
+  });
+
   var effort='';
   if(p.members.length){
     effort='<div class="effort-list">';
@@ -1146,7 +1163,7 @@ function buildMemberHTML(p){
   } else {
     effort='<div style="font-size:12px;color:var(--t3);padding-top:4px">Chọn thành viên ở trên để nhập effort.</div>';
   }
-  return '<div class="chips">'+chips+'</div>'+effort;
+  return chipSections+effort;
 }
 function bindPct(p){
   document.querySelectorAll('.eff-pct[data-pid="'+p.id+'"]').forEach(function(el){
